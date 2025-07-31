@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Link from "next/link";
-import Image from "next/image";
-import Logo from "@/assets/Lijun Fang, Series 1, No. 6.jpg";
+import { ConvexClientProvider } from "./convex-client-provider";
+import { Toaster } from "@/components/ui/sonner";
+import Header from "@/components/header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,30 +26,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
       >
         <div className="max-w-2xl mx-auto py-10 px-4">
-          <header>
-            <div className="flex items-center justify-between">
-              <Link href="/">
-                <Image
-                  src={Logo}
-                  alt="Logo"
-                  width={48}
-                  height={48}
-                  className="rounded-full"
-                />
-              </Link>
-              <nav className="ml-auto text-md font-medium space-x-6 text-gray-950">
-                <Link href="/about" className="hover:underline hover:text-[#3399ff]">About</Link>
-                <Link href="/chatbot" className="hover:underline hover:text-[#3399ff]">ChatBot</Link>
-              </nav>
-            </div>
-          </header>
-          <main>{children}</main>
+          <main>
+            <Header />
+            <ConvexClientProvider>{children}</ConvexClientProvider>
+          </main>
         </div>
+        <Toaster />
       </body>
     </html>
   );

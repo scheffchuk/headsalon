@@ -1,3 +1,5 @@
-export default function Home() {
-  return <div className="flex flex-col justify-center items-center"></div>;
+import { ArticlesPreview } from "./article-preview";
+
+export default function HomePage() {
+  return <ArticlesPreview />;
 }
