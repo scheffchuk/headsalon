@@ -9,13 +9,9 @@ interface TagPageProps {
 export default async function TagPage({ params }: TagPageProps) {
   const { tag } = await params;
   const decodedTag = decodeURIComponent(tag);
-  
+
   const preloadedArticles = await preloadQuery(api.articles.getArticlesByTag, {
     tag: decodedTag,
-    paginationOpts: {
-      numItems: 50,
-      cursor: null,
-    },
   });
 
   return <TagArticles preloadedArticles={preloadedArticles} tag={decodedTag} />;

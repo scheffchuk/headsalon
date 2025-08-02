@@ -15,7 +15,7 @@ export function ArticlesPreview() {
 
   if (status === "LoadingFirstPage") {
     return (
-      <div className="min-h-screen flex mx-auto px-4 py-8 justify-center gap-4">
+      <div className="min-h-screen flex mx-auto py-8">
         <LoadingText />
       </div>
     );

@@ -10,7 +10,7 @@ interface TagArticlesProps {
 }
 
 export function TagArticles({ preloadedArticles, tag }: TagArticlesProps) {
-  const result = usePreloadedQuery(preloadedArticles);
+  const articlesByTag = usePreloadedQuery(preloadedArticles);
 
   // Format date for display
   const formatDate = (dateStr: string) => {
@@ -22,24 +22,22 @@ export function TagArticles({ preloadedArticles, tag }: TagArticlesProps) {
     });
   };
 
-  const articles = result.page || [];
-
   return (
     <div className="mx-auto mt-16">
       {/* Header */}
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">标签：{tag}</h1>
-        <p className="text-gray-600">找到 {articles.length} 篇相关文章</p>
+        <p className="text-gray-600">找到 {articlesByTag.length} 篇相关文章</p>
       </header>
 
       {/* Articles List */}
-      {!articles.length ? (
+      {!articlesByTag.length ? (
         <div className="text-center py-16">
           <p className="text-gray-600 mb-4">该标签下暂无文章</p>
         </div>
       ) : (
         <div className="space-y-8">
-          {articles.map((article) => (
+          {articlesByTag.map((article) => (
             <article key={article._id} className="gap-8 py-4">
               <header className="mb-3">
                 <h2 className="text-3xl font-bold mb-2">
@@ -58,14 +56,14 @@ export function TagArticles({ preloadedArticles, tag }: TagArticlesProps) {
                   </time>
 
                   <div className="flex flex-wrap gap-2">
-                    {article.tags.map((articleTag: string) => (
+                    {article.tags.map((articleTag) => (
                       <Link
                         key={articleTag}
                         prefetch={true}
                         href={`/tag/${encodeURIComponent(articleTag)}`}
                         className={`px-2 py-1 rounded-md text-xs transition-colors ${articleTag === tag
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 hover:bg-gray-200"
+                            ? "bg-blue-400 text-white"
+                            : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                           }`}
                       >
                         {articleTag}

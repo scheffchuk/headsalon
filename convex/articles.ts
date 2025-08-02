@@ -26,6 +26,39 @@ export const getArticles = query({
   },
 });
 
+// Get articles by tag
+export const getArticlesByTag = query({
+  args: {
+    tag: v.string(),
+  },
+  handler: async (ctx, { tag }) => {
+    // Get article IDs for the tag, ordered by date (newest first)
+    const tagEntries = await ctx.db
+      .query("articleTags")
+      .withIndex("by_tag_date", (q) => q.eq("tag", tag))
+      .order("desc")
+      .collect();
+
+    // Get full article data for each article ID
+    const articles = [];
+    for (const tagEntry of tagEntries) {
+      const article = await ctx.db.get(tagEntry.articleId);
+      if (article) {
+        articles.push({
+          _id: article._id,
+          title: article.title,
+          slug: article.slug,
+          excerpt: article.excerpt,
+          tags: article.tags,
+          date: article.date,
+        });
+      }
+    }
+
+    return articles;
+  },
+});
+
 // Get article by slug
 export const getArticleBySlug = query({
   args: { slug: v.string() },
@@ -109,44 +142,6 @@ export const searchArticles = query({
         tags: article.tags,
         date: article.date,
       })),
-    };
-  },
-});
-
-// Get articles by tag
-export const getArticlesByTag = query({
-  args: {
-    tag: v.string(),
-    paginationOpts: paginationOptsValidator,
-  },
-  handler: async (ctx, { tag, paginationOpts }) => {
-    // Get all articles and filter on the server side
-    const allArticles = await ctx.db.query("articles").order("desc").collect();
-
-    // Filter articles that contain the tag
-    const filteredArticles = allArticles.filter(
-      (article) => article.tags && article.tags.includes(tag)
-    );
-
-    // Manual pagination
-    const startIndex = paginationOpts.cursor
-      ? parseInt(paginationOpts.cursor)
-      : 0;
-    const endIndex = startIndex + paginationOpts.numItems;
-    const pageArticles = filteredArticles.slice(startIndex, endIndex);
-    const hasMore = endIndex < filteredArticles.length;
-
-    return {
-      page: pageArticles.map((article) => ({
-        _id: article._id,
-        title: article.title,
-        slug: article.slug,
-        excerpt: article.excerpt,
-        tags: article.tags,
-        date: article.date,
-      })),
-      isDone: !hasMore,
-      continueCursor: hasMore ? endIndex.toString() : null,
     };
   },
 });
