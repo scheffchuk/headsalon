@@ -1,3 +1,5 @@
+import { unstable_ViewTransition as ViewTransition } from "react";
+
 import { preloadQuery } from "convex/nextjs";
 import { api } from "../../../../convex/_generated/api";
 import { TagArticles } from "./tag-articles";
@@ -14,5 +16,9 @@ export default async function TagPage({ params }: TagPageProps) {
     tag: decodedTag,
   });
 
-  return <TagArticles preloadedArticles={preloadedArticles} tag={decodedTag} />;
+  return (
+    <ViewTransition>
+      <TagArticles preloadedArticles={preloadedArticles} tag={decodedTag} />
+    </ViewTransition>
+  );
 }

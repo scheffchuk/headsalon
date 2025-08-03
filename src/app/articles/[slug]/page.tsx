@@ -1,4 +1,5 @@
 import { preloadQuery } from "convex/nextjs";
+import { unstable_ViewTransition as ViewTransition } from "react";
 import { api } from "../../../../convex/_generated/api";
 import { Article } from "./article";
 
@@ -12,5 +13,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     slug: decodeURIComponent(slug),
   });
 
-  return <Article preloadedArticle={preloadedArticle} />;
+  return (
+    <ViewTransition>
+      <Article preloadedArticle={preloadedArticle} />
+    </ViewTransition>
+  );
 }

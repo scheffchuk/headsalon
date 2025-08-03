@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { unstable_ViewTransition as ViewTransition } from "react";
+
 import { Badge } from "./ui/badge";
 
 type Article = {
@@ -25,26 +27,32 @@ export function ArticleCard({ article }: ArticleProps) {
 
   return (
     <article className="py-4">
-      <Link href={`/articles/${article.slug}`} prefetch={true}>
-        <h2 className="text-3xl font-semibold text-[#3399ff] hover:text-blue-500 transition-colors mb-3">
-          {article.title}
-        </h2>
-      </Link>
+      <ViewTransition name={`title-${article.slug}`}>
+        <Link href={`/articles/${article.slug}`} prefetch={true}>
+          <h2 className="text-3xl font-semibold text-[#3399ff] hover:text-blue-500 transition-colors mb-3">
+            {article.title}
+          </h2>
+        </Link>
+      </ViewTransition>
 
       <div className="flex items-center justify-between text-sm text-gray-500">
-        <time dateTime={article.date}>{formatDate(article.date)}</time>
+        <ViewTransition name={`date-${article.slug}`}>
+          <time dateTime={article.date}>{formatDate(article.date)}</time>
+        </ViewTransition>
       </div>
       {article.tags && article.tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
-          {article.tags.map((tag) => (
-            <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}>
-              <Badge
-                variant="secondary"
-                className="hover:bg-primary hover:text-primary-foreground transition-colors"
-              >
-                {tag}
-              </Badge>
-            </Link>
+          {article.tags.map((tag, i) => (
+            <ViewTransition key={i} name={`tag-${article.slug}-${i}`}>
+              <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}>
+                <Badge
+                  variant="secondary"
+                  className="hover:bg-primary hover:text-primary-foreground transition-colors"
+                >
+                  {tag}
+                </Badge>
+              </Link>
+            </ViewTransition>
           ))}
         </div>
       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { unstable_ViewTransition as ViewTransition } from "react";
 import { usePreloadedQuery, Preloaded } from "convex/react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -40,27 +41,32 @@ export function Article({ preloadedArticle }: ArticleProps) {
     <div className="mx-auto py-8">
       <Card className="border-none shadow-none">
         <CardHeader>
-          <CardTitle className="text-4xl font-bold leading-relaxed">
-            {article.title}
-          </CardTitle>
-
-          <CardDescription className="text-lg">
-            <time dateTime={article.date} className="text-muted-foreground">
-              发布于 {formatDate(article.date)}
-            </time>
-          </CardDescription>
-
+          <ViewTransition name={`title-${article.slug}`}>
+            <CardTitle className="text-4xl font-bold leading-relaxed">
+              {article.title}
+            </CardTitle>
+          </ViewTransition>
+          <ViewTransition name={`date-${article.slug}`}>
+            <CardDescription className="text-lg">
+              发布于
+              <time dateTime={article.date} className="text-muted-foreground">
+                {formatDate(article.date)}
+              </time>
+            </CardDescription>
+          </ViewTransition>
           {article.tags && article.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-4">
-              {article.tags.map((tag) => (
-                <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}>
-                  <Badge
-                    variant="secondary"
-                    className="hover:bg-primary hover:text-primary-foreground transition-colors"
-                  >
-                    {tag}
-                  </Badge>
-                </Link>
+              {article.tags.map((tag, i) => (
+                <ViewTransition key={i} name={`tag-${article.slug}-${i}`}>
+                  <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}>
+                    <Badge
+                      variant="secondary"
+                      className="hover:bg-primary hover:text-primary-foreground transition-colors"
+                    >
+                      {tag}
+                    </Badge>
+                  </Link>
+                </ViewTransition>
               ))}
             </div>
           )}
