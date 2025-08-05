@@ -10,7 +10,7 @@ export function ArticlesPreview() {
   const { results, status, loadMore } = usePaginatedQuery(
     api.articles.getArticles,
     {},
-    { initialNumItems: 50 }
+    { initialNumItems: 20 }
   );
 
   if (status === "LoadingFirstPage") {
@@ -42,7 +42,7 @@ export function ArticlesPreview() {
       {status === "CanLoadMore" && (
         <div className="mt-8 flex justify-center">
           <button
-            onClick={() => loadMore(50)}
+            onClick={() => loadMore(20)}
             className="px-6 py-2 text-gray-800 hover:text-[#3399ff] transition-none cursor-pointer"
           >
             Load More...

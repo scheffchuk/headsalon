@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
+import type { Doc } from "./_generated/dataModel";
 
 // Get articles for home page - paginated
 export const getArticles = query({
@@ -26,12 +27,16 @@ export const getArticles = query({
   },
 });
 
-// Get articles by tag
+// Get articles by tag - optimized with junction table
 export const getArticlesByTag = query({
   args: {
     tag: v.string(),
   },
   handler: async (ctx, { tag }) => {
+    if (!tag.trim()) {
+      return [];
+    }
+
     // Get article IDs for the tag, ordered by date (newest first)
     const tagEntries = await ctx.db
       .query("articleTags")
@@ -39,23 +44,22 @@ export const getArticlesByTag = query({
       .order("desc")
       .collect();
 
-    // Get full article data for each article ID
-    const articles = [];
-    for (const tagEntry of tagEntries) {
-      const article = await ctx.db.get(tagEntry.articleId);
-      if (article) {
-        articles.push({
-          _id: article._id,
-          title: article.title,
-          slug: article.slug,
-          excerpt: article.excerpt,
-          tags: article.tags,
-          date: article.date,
-        });
-      }
-    }
+    // Batch retrieve articles by ID
+    const articles = await Promise.all(
+      tagEntries.map((entry) => ctx.db.get(entry.articleId))
+    );
 
-    return articles;
+    // Filter out null results and return with excerpt
+    return articles
+      .filter((article): article is Doc<"articles"> => article !== null)
+      .map((article) => ({
+        _id: article._id,
+        title: article.title,
+        slug: article.slug,
+        excerpt: article.excerpt,
+        tags: article.tags,
+        date: article.date,
+      }));
   },
 });
 
@@ -63,6 +67,10 @@ export const getArticlesByTag = query({
 export const getArticleBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
+    if (!slug.trim()) {
+      return null;
+    }
+
     return await ctx.db
       .query("articles")
       .withIndex("by_slug", (q) => q.eq("slug", slug))
@@ -70,7 +78,7 @@ export const getArticleBySlug = query({
   },
 });
 
-// High-performance full-text search
+// Full-text search with title and content search
 export const searchArticles = query({
   args: {
     query: v.string(),
@@ -78,11 +86,14 @@ export const searchArticles = query({
     tagFilter: v.optional(v.string()),
   },
   handler: async (ctx, { query: searchQuery, paginationOpts, tagFilter }) => {
+    // Early return for empty queries
     if (!searchQuery.trim()) {
       return { page: [], isDone: true, continueCursor: "" };
     }
 
-    // Search in titles first (most relevant)
+    const maxResults = paginationOpts.numItems || 100;
+
+    // Search in titles (higher priority)
     const titleResults = await ctx.db
       .query("articles")
       .withSearchIndex("search_title_content", (q) => {
@@ -92,56 +103,68 @@ export const searchArticles = query({
         }
         return search;
       })
-      .paginate(paginationOpts);
+      .take(maxResults);
 
-    // If we need more results, search in content
-    if (!titleResults.isDone || titleResults.page.length < 10) {
-      const contentResults = await ctx.db
-        .query("articles")
-        .withSearchIndex("search_content", (q) => {
-          let search = q.search("content", searchQuery);
-          if (tagFilter) {
-            search = search.eq("tags", [tagFilter]);
-          }
-          return search;
-        })
-        .take(10 - titleResults.page.length);
+    // Search in content
+    const contentResults = await ctx.db
+      .query("articles")
+      .withSearchIndex("search_content", (q) => {
+        let search = q.search("content", searchQuery);
+        if (tagFilter) {
+          search = search.eq("tags", [tagFilter]);
+        }
+        return search;
+      })
+      .take(maxResults);
 
-      // Combine results, prioritizing title matches
-      const combinedResults = [
-        ...titleResults.page,
-        ...contentResults.filter(
-          (content) =>
-            !titleResults.page.some((title) => title._id === content._id)
-        ),
-      ];
+    // Transform results
+    const transformArticle = (
+      article: Doc<"articles">,
+      matchType: "title" | "content"
+    ) => ({
+      _id: article._id,
+      title: article.title,
+      slug: article.slug,
+      excerpt: article.excerpt,
+      tags: article.tags,
+      date: article.date,
+      _matchType: matchType, // Add match type for debugging
+    });
 
-      return {
-        page: combinedResults.map((article) => ({
-          _id: article._id,
-          title: article.title,
-          slug: article.slug,
-          excerpt: article.excerpt,
-          tags: article.tags,
-          date: article.date,
-        })),
-        isDone:
-          titleResults.isDone &&
-          contentResults.length < 10 - titleResults.page.length,
-        continueCursor: titleResults.continueCursor,
-      };
-    }
+    const titleResultsTransformed = titleResults.map((article) =>
+      transformArticle(article, "title")
+    );
+    const contentResultsTransformed = contentResults.map((article) =>
+      transformArticle(article, "content")
+    );
+
+    // Combine and deduplicate (title matches have priority)
+    const combinedResultsMap = new Map();
+
+    // Add title matches first (higher priority)
+    titleResultsTransformed.forEach((article) => {
+      combinedResultsMap.set(article._id, article);
+    });
+
+    // Add content matches only if not already included
+    contentResultsTransformed.forEach((article) => {
+      if (!combinedResultsMap.has(article._id)) {
+        combinedResultsMap.set(article._id, article);
+      }
+    });
+
+    // Convert to array and limit results
+    const combinedResults = Array.from(combinedResultsMap.values())
+      .slice(0, maxResults)
+      .map(({ _matchType, ...article }) => article); // Remove debug field
+
+    // For pagination, we'll consider it done if we have fewer results than requested
+    const isDone = combinedResults.length < maxResults;
 
     return {
-      ...titleResults,
-      page: titleResults.page.map((article) => ({
-        _id: article._id,
-        title: article.title,
-        slug: article.slug,
-        excerpt: article.excerpt,
-        tags: article.tags,
-        date: article.date,
-      })),
+      page: combinedResults,
+      isDone,
+      continueCursor: "", // Simplified cursor handling
     };
   },
 });

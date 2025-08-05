@@ -16,7 +16,10 @@ export default function Header() {
             className="rounded-full"
           />
         </Link>
-        <nav className="ml-auto text-md font-medium space-x-6 text-gray-700">
+        <nav className="ml-auto flex items-center text-md font-medium space-x-6 text-gray-700">
+          <Link href="/search" className="hover:text-[#3399ff] transition-colors" aria-label="搜索">
+            Search
+          </Link>
           <Link href="/about" className="hover:underline hover:text-[#3399ff]">
             About
           </Link>
