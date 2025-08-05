@@ -123,7 +123,7 @@ function SearchPageContent() {
   const articles = searchResults?.page || [];
 
   return (
-    <div className="mx-auto py-8">
+    <div className="mx-auto mt-16">
       {/* Search Header Section */}
       <header className="mb-8">
         <h1 className="text-3xl font-bold mb-4">{SEARCH_CONFIG.PAGE_TITLE}</h1>
@@ -162,7 +162,7 @@ export default function SearchPage() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto py-8">
+        <div className="mx-auto mt-16 py-8">
           <header className="mb-8">
             <h1 className="text-3xl font-bold mb-4">
               {SEARCH_CONFIG.PAGE_TITLE}

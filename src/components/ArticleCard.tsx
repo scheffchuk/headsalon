@@ -36,23 +36,19 @@ export function ArticleCard({ article }: ArticleProps) {
       </ViewTransition>
 
       <div className="flex items-center justify-between text-sm text-gray-500">
-        <ViewTransition name={`date-${article.slug}`}>
-          <time dateTime={article.date}>{formatDate(article.date)}</time>
-        </ViewTransition>
+        <time dateTime={article.date}>{formatDate(article.date)}</time>
       </div>
       {article.tags && article.tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
-          {article.tags.map((tag, i) => (
-            <ViewTransition key={i} name={`tag-${article.slug}-${i}`}>
-              <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}>
-                <Badge
-                  variant="secondary"
-                  className="hover:bg-primary hover:text-primary-foreground transition-colors"
-                >
-                  {tag}
-                </Badge>
-              </Link>
-            </ViewTransition>
+          {article.tags.map((tag) => (
+            <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}>
+              <Badge
+                variant="secondary"
+                className="hover:bg-primary hover:text-primary-foreground transition-colors"
+              >
+                {tag}
+              </Badge>
+            </Link>
           ))}
         </div>
       )}

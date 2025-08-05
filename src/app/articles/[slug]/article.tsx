@@ -46,27 +46,23 @@ export function Article({ preloadedArticle }: ArticleProps) {
               {article.title}
             </CardTitle>
           </ViewTransition>
-          <ViewTransition name={`date-${article.slug}`}>
-            <CardDescription className="text-lg">
-              发布于
-              <time dateTime={article.date} className="text-muted-foreground">
-                {formatDate(article.date)}
-              </time>
-            </CardDescription>
-          </ViewTransition>
+          <CardDescription className="text-lg">
+            发布于
+            <time dateTime={article.date} className="text-muted-foreground">
+              {formatDate(article.date)}
+            </time>
+          </CardDescription>
           {article.tags && article.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-4">
-              {article.tags.map((tag, i) => (
-                <ViewTransition key={i} name={`tag-${article.slug}-${i}`}>
-                  <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}>
-                    <Badge
-                      variant="secondary"
-                      className="hover:bg-primary hover:text-primary-foreground transition-colors"
-                    >
-                      {tag}
-                    </Badge>
-                  </Link>
-                </ViewTransition>
+              {article.tags.map((tag) => (
+                <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}>
+                  <Badge
+                    variant="secondary"
+                    className="hover:bg-primary hover:text-primary-foreground transition-colors"
+                  >
+                    {tag}
+                  </Badge>
+                </Link>
               ))}
             </div>
           )}
