@@ -61,7 +61,7 @@ export default function SearchBar({
           onChange={(e) => handleSearchInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="pl-10 pr-10"
+          className="pl-10 pr-10 text-base md:text-sm"
         />
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center">
           {isLoading ? (

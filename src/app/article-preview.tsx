@@ -5,14 +5,24 @@ import { api } from "../../convex/_generated/api";
 import { ArticleCard } from "@/components/ArticleCard";
 import { Loader2 } from "lucide-react";
 import { LoadingText } from "@/components/ui/loading-text";
+import { usePersistedPagination } from "@/hooks/usePersistedState";
+import { useRef } from "react";
 
 export function ArticlesPreview() {
+  const { initialItems, saveItems } = usePersistedPagination();
+  const hasRestoredRef = useRef(false);
+  
   const { results, status, loadMore } = usePaginatedQuery(
     api.articles.getArticles,
     {},
-    { initialNumItems: 20 }
+    { initialNumItems: initialItems }
   );
 
+  // Restore pagination directly when conditions are met (no useEffect needed)
+  if (initialItems > 20 && results.length === 20 && status === "CanLoadMore" && !hasRestoredRef.current) {
+    loadMore(initialItems - 20);
+    hasRestoredRef.current = true;
+  }
   if (status === "LoadingFirstPage") {
     return (
       <div className="min-h-screen flex mx-auto py-8">
@@ -42,7 +52,10 @@ export function ArticlesPreview() {
       {status === "CanLoadMore" && (
         <div className="mt-8 flex justify-center">
           <button
-            onClick={() => loadMore(20)}
+            onClick={() => {
+              loadMore(20);
+              saveItems(results.length + 20);
+            }}
             className="px-6 py-2 text-gray-800 hover:text-[#3399ff] transition-none cursor-pointer"
           >
             Load More...

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { HighlightedText, getSearchExcerpt } from "./HighlightedText";
 
 type Article = {
@@ -69,7 +70,7 @@ const SearchResultCard = ({
       <div className="space-y-3">
         {/* Title with highlighting */}
         <h3 className="text-xl font-semibold">
-          <a
+          <Link
             href={`/articles/${article.slug}`}
             className="text-foreground hover:text-primary transition-colors"
           >
@@ -78,7 +79,7 @@ const SearchResultCard = ({
               searchQuery={query}
               highlightClassName="bg-yellow-200 dark:bg-yellow-900/50 px-1 py-0.5 rounded font-medium"
             />
-          </a>
+          </Link>
         </h3>
 
         {/* Excerpt with highlighting */}
