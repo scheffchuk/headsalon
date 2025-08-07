@@ -3,26 +3,60 @@
 import { usePaginatedQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { ArticleCard } from "@/components/ArticleCard";
-import { Loader2 } from "lucide-react";
+import { ArticleCardSkeleton } from "@/components/ArticleCardSkeleton";
 import { LoadingText } from "@/components/ui/loading-text";
-import { usePersistedPagination } from "@/hooks/usePersistedState";
-import { useRef } from "react";
+import { useEffect, useCallback } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+const ARTICLES_PER_PAGE = 20;
 
 export function ArticlesPreview() {
-  const { initialItems, saveItems } = usePersistedPagination();
-  const hasRestoredRef = useRef(false);
-  
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+
   const { results, status, loadMore } = usePaginatedQuery(
     api.articles.getArticles,
     {},
-    { initialNumItems: initialItems }
+    { initialNumItems: ARTICLES_PER_PAGE }
   );
 
-  // Restore pagination directly when conditions are met (no useEffect needed)
-  if (initialItems > 20 && results.length === 20 && status === "CanLoadMore" && !hasRestoredRef.current) {
-    loadMore(initialItems - 20);
-    hasRestoredRef.current = true;
-  }
+  // Memoized navigation function with smooth scroll to top
+  const navigateToPage = useCallback(
+    (page: number) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (page === 1) {
+        params.delete("page");
+      } else {
+        params.set("page", page.toString());
+      }
+      const queryString = params.toString();
+      const url = queryString ? `${pathname}?${queryString}` : pathname;
+      router.push(url, { scroll: true });
+    },
+    [router, pathname, searchParams]
+  );
+
+  // Simplified loading logic - load more items if we need them for the current page
+  useEffect(() => {
+    const itemsNeeded = currentPage * ARTICLES_PER_PAGE;
+    const canLoadMore =
+      status === "CanLoadMore" && results.length < itemsNeeded;
+
+    if (canLoadMore) {
+      loadMore(ARTICLES_PER_PAGE);
+    }
+  }, [currentPage, results.length, status, loadMore]);
+
   if (status === "LoadingFirstPage") {
     return (
       <div className="min-h-screen flex mx-auto py-8">
@@ -31,41 +65,75 @@ export function ArticlesPreview() {
     );
   }
 
-  if (results.length === 0) {
+  // Empty state
+  if (results.length === 0 && status === "Exhausted") {
     return (
       <div className="mx-auto py-8 mt-16">
         <div className="text-center py-16">
-          <p className="text-gray-600 text-lg">暂无文章</p>
+          <p className="text-gray-600 text-lg">Maybe comeback later</p>
         </div>
       </div>
     );
   }
 
+  // Calculate current page boundaries
+  const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
+  const endIndex = startIndex + ARTICLES_PER_PAGE;
+  const currentPageArticles = results.slice(startIndex, endIndex);
+
+  // Determine if we can show next/previous pages
+  const hasLoadedCurrentPage =
+    results.length >=
+    startIndex + Math.min(currentPageArticles.length, ARTICLES_PER_PAGE);
+  const canShowPrevious = currentPage > 1;
+  const canShowNext = status === "CanLoadMore" || results.length > endIndex;
+
+  // Show loading skeletons when loading more or when current page is incomplete
+  const isLoadingCurrentPage =
+    status === "LoadingMore" ||
+    (currentPageArticles.length === 0 &&
+      status === "CanLoadMore" &&
+      results.length < startIndex + 1);
+
+  const skeletonCount = isLoadingCurrentPage
+    ? ARTICLES_PER_PAGE - currentPageArticles.length
+    : 0;
+
   return (
     <div className="mx-auto py-8 mt-16">
       <div className="flex flex-col space-y-6">
-        {results.map((article) => (
+        {currentPageArticles.map((article) => (
           <ArticleCard key={article._id} article={article} />
         ))}
+
+        {skeletonCount > 0 &&
+          Array.from({ length: skeletonCount }, (_, index) => (
+            <ArticleCardSkeleton key={`skeleton-${index}`} />
+          ))}
       </div>
 
-      {status === "CanLoadMore" && (
-        <div className="mt-8 flex justify-center">
-          <button
-            onClick={() => {
-              loadMore(20);
-              saveItems(results.length + 20);
-            }}
-            className="px-6 py-2 text-gray-800 hover:text-[#3399ff] transition-none cursor-pointer"
-          >
-            Load More...
-          </button>
-        </div>
-      )}
+      {/* Show pagination only when we have content or are loading */}
+      {(canShowPrevious || canShowNext) && hasLoadedCurrentPage && (
+        <div className="mt-8">
+          <Pagination>
+            <PaginationContent>
+              {canShowPrevious && (
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => navigateToPage(currentPage - 1)}
+                  />
+                </PaginationItem>
+              )}
 
-      {status === "LoadingMore" && (
-        <div className="mt-8 flex justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-400" />
+              {canShowNext && (
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => navigateToPage(currentPage + 1)}
+                  />
+                </PaginationItem>
+              )}
+            </PaginationContent>
+          </Pagination>
         </div>
       )}
     </div>
