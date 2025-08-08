@@ -1,7 +1,10 @@
 "use client";
 
 import { ArticleCard } from "@/components/ArticleCard";
+import { ArticleCardSkeleton } from "@/components/ArticleCardSkeleton";
+import { PaginationSkeleton } from "@/components/PaginationSkeleton";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useTransition } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -36,18 +39,21 @@ export function ArticlesClient({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
-  // Simple navigation function
+  // Navigation function with loading state
   const navigateToPage = (page: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (page === 1) {
-      params.delete("page");
-    } else {
-      params.set("page", page.toString());
-    }
-    const queryString = params.toString();
-    const url = queryString ? `${pathname}?${queryString}` : pathname;
-    router.push(url, { scroll: true });
+    startTransition(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (page === 1) {
+        params.delete("page");
+      } else {
+        params.set("page", page.toString());
+      }
+      const queryString = params.toString();
+      const url = queryString ? `${pathname}?${queryString}` : pathname;
+      router.push(url);
+    });
   };
 
   // Empty state
@@ -64,34 +70,46 @@ export function ArticlesClient({
   return (
     <div className="mx-auto py-8 mt-16">
       <div className="flex flex-col space-y-6">
-        {articles.map((article) => (
-          <ArticleCard key={article._id} article={article} />
-        ))}
+        {isPending ? (
+          // Show loading skeletons during navigation
+          Array.from({ length: 5 }).map((_, index) => (
+            <ArticleCardSkeleton key={`skeleton-${index}`} />
+          ))
+        ) : (
+          // Show actual articles when not loading
+          articles.map((article) => (
+            <ArticleCard key={article._id} article={article} />
+          ))
+        )}
       </div>
 
-      {/* Show pagination only when we have content */}
-      {(canShowPrevious || canShowNext) && hasLoadedCurrentPage && (
-        <div className="mt-8">
-          <Pagination>
-            <PaginationContent>
-              {canShowPrevious && (
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => navigateToPage(currentPage - 1)}
-                  />
-                </PaginationItem>
-              )}
+      {/* Show pagination or skeleton based on loading state */}
+      {isPending ? (
+        <PaginationSkeleton />
+      ) : (
+        (canShowPrevious || canShowNext) && hasLoadedCurrentPage && (
+          <div className="mt-8">
+            <Pagination>
+              <PaginationContent>
+                {canShowPrevious && (
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => navigateToPage(currentPage - 1)}
+                    />
+                  </PaginationItem>
+                )}
 
-              {canShowNext && (
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => navigateToPage(currentPage + 1)}
-                  />
-                </PaginationItem>
-              )}
-            </PaginationContent>
-          </Pagination>
-        </div>
+                {canShowNext && (
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => navigateToPage(currentPage + 1)}
+                    />
+                  </PaginationItem>
+                )}
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )
       )}
     </div>
   );
