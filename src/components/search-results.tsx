@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HighlightedText, getSearchExcerpt } from "./HighlightedText";
+import { HighlightedText, getSearchExcerpt } from "./highlighted-text";
 
 type Article = {
   _id: string;

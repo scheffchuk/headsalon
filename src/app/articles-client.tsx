@@ -1,8 +1,8 @@
 "use client";
 
-import { ArticleCard } from "@/components/ArticleCard";
-import { ArticleCardSkeleton } from "@/components/ArticleCardSkeleton";
-import { PaginationSkeleton } from "@/components/PaginationSkeleton";
+import { ArticleCard } from "@/components/article-card";
+import { ArticleCardSkeleton } from "@/components/article-card-skeleton";
+import { PaginationSkeleton } from "@/components/pagination-skeleton";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTransition } from "react";
 import {

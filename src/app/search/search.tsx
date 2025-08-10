@@ -7,7 +7,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
 import SearchBar from "@/components/search-bar";
-import { SearchResults } from "@/components/SearchResults";
+import { SearchResults } from "@/components/search-results";
 
 // Search configuration constants
 const SEARCH_CONFIG = {

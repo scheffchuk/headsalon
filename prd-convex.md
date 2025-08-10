@@ -204,7 +204,7 @@ headsalon-blog/
 │   │   ├── globals.css
 │   │   └── layout.tsx               # Root layout
 │   ├── components/
-│   │   ├── ArticleCard.tsx
+│   │   ├── article-card.tsx
 │   │   ├── SearchBar.tsx
 │   │   ├── TagFilter.tsx
 │   │   ├── Pagination.tsx
