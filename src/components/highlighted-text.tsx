@@ -1,12 +1,12 @@
 import React from "react";
 
-interface HighlightedTextProps {
+type HighlightedTextProps = {
   text: string;
   searchQuery: string;
   className?: string;
   highlightClassName?: string;
   caseSensitive?: boolean;
-}
+};
 
 // Escape special regex characters
 function escapeRegExp(string: string): string {

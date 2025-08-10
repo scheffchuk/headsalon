@@ -5,7 +5,7 @@ import { unstable_ViewTransition as ViewTransition } from "react";
 import { usePreloadedQuery, Preloaded } from "convex/react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import ReactMarkdown from "react-markdown";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { api } from "../../../../convex/_generated/api";
 import {
   Card,
@@ -16,9 +16,9 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-interface ArticleProps {
+type ArticleProps = {
   preloadedArticle: Preloaded<typeof api.articles.getArticleBySlug>;
-}
+};
 
 export function Article({ preloadedArticle }: ArticleProps) {
   const article = usePreloadedQuery(preloadedArticle);
@@ -69,75 +69,13 @@ export function Article({ preloadedArticle }: ArticleProps) {
         </CardHeader>
 
         <CardContent>
-          <div className="prose prose-lg max-w-none">
-            {article.content ? (
-              <ReactMarkdown
-                components={{
-                  h1: ({ node, ...props }) => (
-                    <h1 className="text-3xl font-bold mt-8 mb-6" {...props} />
-                  ),
-                  h2: ({ node, ...props }) => (
-                    <h2 className="text-2xl font-bold mt-8 mb-4" {...props} />
-                  ),
-                  h3: ({ node, ...props }) => (
-                    <h3
-                      className="text-xl font-semibold mt-6 mb-3"
-                      {...props}
-                    />
-                  ),
-                  p: ({ node, ...props }) => (
-                    <p className="mb-4 leading-relaxed" {...props} />
-                  ),
-                  a: ({ node, ...props }) => (
-                    <a className="text-primary hover:underline" {...props} />
-                  ),
-                  code: ({ node, ...props }) => (
-                    <code
-                      className="bg-muted px-2 py-1 rounded text-sm"
-                      {...props}
-                    />
-                  ),
-                  pre: ({ node, ...props }) => (
-                    <pre
-                      className="bg-muted p-4 rounded-lg overflow-x-auto my-4"
-                      {...props}
-                    />
-                  ),
-                  ul: ({ node, ...props }) => (
-                    <ul
-                      className="list-disc list-inside mb-4 space-y-1"
-                      {...props}
-                    />
-                  ),
-                  ol: ({ node, ...props }) => (
-                    <ol
-                      className="list-decimal list-inside mb-4 space-y-1"
-                      {...props}
-                    />
-                  ),
-                  li: ({ node, ...props }) => (
-                    <li className="ml-4" {...props} />
-                  ),
-                  blockquote: ({ node, ...props }) => (
-                    <blockquote
-                      className="border-l-4 border-muted pl-4 italic my-4"
-                      {...props}
-                    />
-                  ),
-                  strong: ({ node, ...props }) => (
-                    <strong className="font-semibold" {...props} />
-                  ),
-                  em: ({ node, ...props }) => (
-                    <em className="italic" {...props} />
-                  ),
-                }}
-              >
-                {article.content}
-              </ReactMarkdown>
-            ) : (
+          {article.content ? (
+            <MarkdownRenderer content={article.content} />
+          ) : (
+            <div className="prose prose-lg max-w-none">
               <p className="text-muted-foreground">文章内容加载中...</p>
-            )}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

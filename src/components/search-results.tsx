@@ -12,14 +12,14 @@ type Article = {
   _matchType?: "title" | "content";
 };
 
-interface SearchResultsProps {
+type SearchResultsProps = {
   articles: Article[];
   isLoading: boolean;
   query: string;
   totalCount?: number;
   showMatchTypes?: boolean;
   maxExcerptLength?: number;
-}
+};
 
 // Loading skeleton component for cleaner structure
 const SearchSkeleton = () => (

@@ -13,7 +13,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-interface ArticlesClientProps {
+type ArticlesClientProps = {
   articles: Array<{
     _id: string;
     title: string;
@@ -26,7 +26,7 @@ interface ArticlesClientProps {
   canShowNext: boolean;
   hasLoadedCurrentPage: boolean;
   isEmpty: boolean;
-}
+};
 
 export function ArticlesClient({
   articles,

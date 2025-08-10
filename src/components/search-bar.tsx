@@ -4,13 +4,13 @@ import { useState, useRef } from "react";
 import { Search, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-interface SearchBarProps {
+type SearchBarProps = {
   onSearch: (query: string) => void;
   placeholder?: string;
   initialValue?: string;
   isLoading?: boolean;
   debounceMs?: number;
-}
+};
 
 export default function SearchBar({
   onSearch,

@@ -54,6 +54,8 @@ The application uses two main tables with optimized indexing:
 
 **Styling**: Uses Tailwind CSS with a constrained max-width design (max-w-2xl) centered layout.
 
+**Filename Conventions**: All filenames should use kebab-case for consistency (e.g., `article-card.tsx`, `search-results.tsx`, `highlighted-text.tsx`). This applies to components, pages, utilities, and other source files.
+
 ## Migration Notes
 
 When adding new articles or modifying tag relationships, run the `migrations:populateArticleTags` function in the Convex dashboard to maintain the articleTags junction table.

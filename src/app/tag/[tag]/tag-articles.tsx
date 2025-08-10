@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePreloadedQuery, Preloaded } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 
-interface TagArticlesProps {
+type TagArticlesProps = {
   preloadedArticles: Preloaded<typeof api.articles.getArticlesByTag>;
   tag: string;
-}
+};
 
 export function TagArticles({ preloadedArticles, tag }: TagArticlesProps) {
   const articlesByTag = usePreloadedQuery(preloadedArticles);

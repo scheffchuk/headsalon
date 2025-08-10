@@ -26,9 +26,9 @@ const getCachedArticles = cache(
   )
 );
 
-interface HomePageProps {
+type HomePageProps = {
   searchParams: Promise<{ page?: string }>;
-}
+};
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
