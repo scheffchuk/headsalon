@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query } from "./_generated/server";
+import { query, internalQuery } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import type { Doc } from "./_generated/dataModel";
 
@@ -78,93 +78,34 @@ export const getArticleBySlug = query({
   },
 });
 
-// Full-text search with title and content search
-export const searchArticles = query({
-  args: {
-    query: v.string(),
-    paginationOpts: paginationOptsValidator,
-    tagFilter: v.optional(v.string()),
+
+// Internal query to get article by ID - used by embedding generation
+export const getArticleById = internalQuery({
+  args: { id: v.id("articles") },
+  handler: async (ctx, { id }) => {
+    return await ctx.db.get(id);
   },
-  handler: async (ctx, { query: searchQuery, paginationOpts, tagFilter }) => {
-    // Early return for empty queries
-    if (!searchQuery.trim()) {
-      return { page: [], isDone: true, continueCursor: "" };
-    }
+});
 
-    const maxResults = paginationOpts.numItems || 100;
-
-    // Search in titles (higher priority)
-    const titleResults = await ctx.db
-      .query("articles")
-      .withSearchIndex("search_title_content", (q) => {
-        let search = q.search("title", searchQuery);
-        if (tagFilter) {
-          search = search.eq("tags", [tagFilter]);
-        }
-        return search;
-      })
-      .take(maxResults);
-
-    // Search in content
-    const contentResults = await ctx.db
-      .query("articles")
-      .withSearchIndex("search_content", (q) => {
-        let search = q.search("content", searchQuery);
-        if (tagFilter) {
-          search = search.eq("tags", [tagFilter]);
-        }
-        return search;
-      })
-      .take(maxResults);
-
-    // Transform results
-    const transformArticle = (
-      article: Doc<"articles">,
-      matchType: "title" | "content"
-    ) => ({
-      _id: article._id,
-      title: article.title,
-      slug: article.slug,
-      excerpt: article.excerpt,
-      tags: article.tags,
-      date: article.date,
-      _matchType: matchType, // Add match type for debugging
-    });
-
-    const titleResultsTransformed = titleResults.map((article) =>
-      transformArticle(article, "title")
-    );
-    const contentResultsTransformed = contentResults.map((article) =>
-      transformArticle(article, "content")
+// Get articles by IDs - used by semantic search results
+export const getArticlesByIds = query({
+  args: {
+    ids: v.array(v.id("articles")),
+  },
+  handler: async (ctx, { ids }) => {
+    const articles = await Promise.all(
+      ids.map((id) => ctx.db.get(id))
     );
 
-    // Combine and deduplicate (title matches have priority)
-    const combinedResultsMap = new Map();
-
-    // Add title matches first (higher priority)
-    titleResultsTransformed.forEach((article) => {
-      combinedResultsMap.set(article._id, article);
-    });
-
-    // Add content matches only if not already included
-    contentResultsTransformed.forEach((article) => {
-      if (!combinedResultsMap.has(article._id)) {
-        combinedResultsMap.set(article._id, article);
-      }
-    });
-
-    // Convert to array and limit results
-    const combinedResults = Array.from(combinedResultsMap.values())
-      .slice(0, maxResults)
-      .map(({ _matchType, ...article }) => article); // Remove debug field
-
-    // For pagination, we'll consider it done if we have fewer results than requested
-    const isDone = combinedResults.length < maxResults;
-
-    return {
-      page: combinedResults,
-      isDone,
-      continueCursor: "", // Simplified cursor handling
-    };
+    return articles
+      .filter((article): article is Doc<"articles"> => article !== null)
+      .map((article) => ({
+        _id: article._id,
+        title: article.title,
+        slug: article.slug,
+        excerpt: article.excerpt,
+        tags: article.tags,
+        date: article.date,
+      }));
   },
 });

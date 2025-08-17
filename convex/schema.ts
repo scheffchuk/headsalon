@@ -13,19 +13,7 @@ const schema = defineSchema({
     // Basic indexes
     .index("by_slug", ["slug"])
     .index("by_date", ["date"])
-    .index("by_tags", ["tags"])
-
-    // Full-text search index for title and content
-    .searchIndex("search_title_content", {
-      searchField: "title",
-      filterFields: ["tags", "date"],
-    })
-
-    // Search index for content
-    .searchIndex("search_content", {
-      searchField: "content",
-      filterFields: ["tags", "date"],
-    }),
+    .index("by_tags", ["tags"]),
 
   articleTags: defineTable({
     articleId: v.id("articles"),
@@ -34,6 +22,28 @@ const schema = defineSchema({
   })
     .index("by_tag_date", ["tag", "articleDate"])
     .index("by_article", ["articleId"]),
+
+  articleEmbeddings: defineTable({
+    articleId: v.id("articles"),
+    chunkIndex: v.number(),
+    content: v.string(),
+    embedding: v.array(v.float64()), // 3072-dimensional vector (text-embedding-3-large)
+    metadata: v.object({
+      title: v.string(),
+      slug: v.string(),
+      tags: v.array(v.string()),
+      date: v.string(),
+      chunkStart: v.number(),
+      chunkEnd: v.number(),
+    }),
+  })
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 3072,
+      filterFields: ["articleId", "chunkIndex"],
+    })
+    .index("by_article", ["articleId"])
+    .index("by_article_chunk", ["articleId", "chunkIndex"]),
 });
 
 export default schema;

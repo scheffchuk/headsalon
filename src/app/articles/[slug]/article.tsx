@@ -39,7 +39,7 @@ export function Article({ preloadedArticle }: ArticleProps) {
 
   return (
     <div className="mx-auto py-8">
-      <Card className="border-none shadow-none">
+      <Card className="border-none shadow-none rounded-sm">
         <CardHeader>
           <ViewTransition name={`title-${article.slug}`}>
             <CardTitle className="text-4xl font-bold leading-relaxed">
