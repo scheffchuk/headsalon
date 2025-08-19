@@ -1,14 +1,7 @@
 // Simple search result caching using browser sessionStorage
 // Automatically clears when browser session ends
 
-type SearchResult = {
-  _id: string;
-  title: string;
-  slug: string;
-  date: string;
-  tags: string[];
-  relevantChunks?: { content: string }[];
-};
+import type { SearchResult } from "@/types/search";
 
 type CachedSearchData = {
   results: SearchResult[];

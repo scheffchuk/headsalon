@@ -13,17 +13,21 @@ type ArticleFilters = {
   tag: string;
 };
 
+// Use the exact same SearchResult interface as the frontend
 type SearchResult = {
   _id: string;
   articleId: string;
   title: string;
   slug: string;
-  tags: string[];
   date: string;
+  tags: string[];
   excerpt: string;
-  score: number;
-  relevantChunks: Array<{ content: string; score: number }>;
-  _meta: {
+  score?: number;
+  relevantChunks?: { 
+    content: string; 
+    score?: number;
+  }[];
+  _meta?: {
     searchType: string;
     semanticScore: number;
   };
