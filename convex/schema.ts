@@ -23,6 +23,7 @@ const schema = defineSchema({
     .index("by_tag_date", ["tag", "articleDate"])
     .index("by_article", ["articleId"]),
 
+  // Legacy table - replaced by RAG component but kept for data cleanup
   articleEmbeddings: defineTable({
     articleId: v.id("articles"),
     chunkIndex: v.number(),

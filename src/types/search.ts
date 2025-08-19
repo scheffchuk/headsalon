@@ -2,11 +2,21 @@
 
 export type SearchResult = {
   _id: string;
+  articleId: string;
   title: string;
   slug: string;
   date: string;
   tags: string[];
-  relevantChunks?: { content: string }[];
+  excerpt: string;
+  score?: number;
+  relevantChunks?: { 
+    content: string; 
+    score?: number;
+  }[];
+  _meta?: {
+    searchType: string;
+    semanticScore: number;
+  };
 };
 
 export type SearchState = {

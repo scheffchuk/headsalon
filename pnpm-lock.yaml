@@ -11,6 +11,9 @@ importers:
       '@ai-sdk/openai':
         specifier: ^2.0.14
         version: 2.0.14(zod@3.25.76)
+      '@convex-dev/rag':
+        specifier: ^0.5.2
+        version: 0.5.2(@convex-dev/workpool@0.2.18(convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(react@19.1.0))(react@19.1.0)(typescript@5.8.3)(zod@3.25.76))(convex@1.25.4(react@19.1.0)))(convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(react@19.1.0))(react@19.1.0)(typescript@5.8.3)(zod@3.25.76))(convex@1.25.4(react@19.1.0))(zod@3.25.76)
       '@radix-ui/react-slot':
         specifier: ^1.2.3
         version: 1.2.3(@types/react@19.1.9)(react@19.1.0)
@@ -122,6 +125,19 @@ packages:
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
+
+  '@convex-dev/rag@0.5.2':
+    resolution: {integrity: sha512-O5Rryn6IHL21AZZhYhNlCi7wHe+INbKgnQQgOKgmwYJFuyIL/WgqXgdd77MlOcW/ezCDeq/laOvlJh6yxh6Ikg==}
+    peerDependencies:
+      '@convex-dev/workpool': ^0.2.14
+      convex: ^1.24.8
+      convex-helpers: ^0.1.94
+
+  '@convex-dev/workpool@0.2.18':
+    resolution: {integrity: sha512-tfRfBCukaRiybxwy4/W3rLWpIRhPivFH9tC5++d0XE1sV627vw2mAwOM9SnpY1k+BWVoNrHrHrxBheklSbuAag==}
+    peerDependencies:
+      convex: '>=1.25.0 <1.35.0'
+      convex-helpers: ^0.1.94
 
   '@emnapi/core@1.4.5':
     resolution: {integrity: sha512-XsLw1dEOpkSX/WucdqUhPWP7hDxSvZiY+fsUC14h+FtQ2Ifni4znbBt8punRX+Uj2JG/uDb8nEHVKvrVlvdZ5Q==}
@@ -1738,6 +1754,28 @@ packages:
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
+  convex-helpers@0.1.104:
+    resolution: {integrity: sha512-7CYvx7T3K6n+McDTK4ZQaQNNGBzq5aWezpjzsKbOxPXx7oNcTP9wrpef3JxeXWFzkByJv5hRCjseh9B7eNJ7Ig==}
+    hasBin: true
+    peerDependencies:
+      '@standard-schema/spec': ^1.0.0
+      convex: ^1.24.0
+      hono: ^4.0.5
+      react: ^17.0.2 || ^18.0.0 || ^19.0.0
+      typescript: ^5.5
+      zod: ^3.22.4 || ^4.0.15
+    peerDependenciesMeta:
+      '@standard-schema/spec':
+        optional: true
+      hono:
+        optional: true
+      react:
+        optional: true
+      typescript:
+        optional: true
+      zod:
+        optional: true
+
   convex@1.25.4:
     resolution: {integrity: sha512-LiGZZTmbe5iHWwDOYfSA00w+uDM8kgLC0ohFJW0VgQlKcs8famHCE6yuplk4wwXyj9Lhb1+yMRfrAD2ZEquqHg==}
     engines: {node: '>=18.0.0', npm: '>=7.0.0'}
@@ -3233,6 +3271,20 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.12
       '@jridgewell/trace-mapping': 0.3.29
+
+  '@convex-dev/rag@0.5.2(@convex-dev/workpool@0.2.18(convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(react@19.1.0))(react@19.1.0)(typescript@5.8.3)(zod@3.25.76))(convex@1.25.4(react@19.1.0)))(convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(react@19.1.0))(react@19.1.0)(typescript@5.8.3)(zod@3.25.76))(convex@1.25.4(react@19.1.0))(zod@3.25.76)':
+    dependencies:
+      '@convex-dev/workpool': 0.2.18(convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(react@19.1.0))(react@19.1.0)(typescript@5.8.3)(zod@3.25.76))(convex@1.25.4(react@19.1.0))
+      ai: 5.0.14(zod@3.25.76)
+      convex: 1.25.4(react@19.1.0)
+      convex-helpers: 0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(react@19.1.0))(react@19.1.0)(typescript@5.8.3)(zod@3.25.76)
+    transitivePeerDependencies:
+      - zod
+
+  '@convex-dev/workpool@0.2.18(convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(react@19.1.0))(react@19.1.0)(typescript@5.8.3)(zod@3.25.76))(convex@1.25.4(react@19.1.0))':
+    dependencies:
+      convex: 1.25.4(react@19.1.0)
+      convex-helpers: 0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(react@19.1.0))(react@19.1.0)(typescript@5.8.3)(zod@3.25.76)
 
   '@emnapi/core@1.4.5':
     dependencies:
@@ -4784,6 +4836,15 @@ snapshots:
   comma-separated-tokens@2.0.3: {}
 
   concat-map@0.0.1: {}
+
+  convex-helpers@0.1.104(@standard-schema/spec@1.0.0)(convex@1.25.4(react@19.1.0))(react@19.1.0)(typescript@5.8.3)(zod@3.25.76):
+    dependencies:
+      convex: 1.25.4(react@19.1.0)
+    optionalDependencies:
+      '@standard-schema/spec': 1.0.0
+      react: 19.1.0
+      typescript: 5.8.3
+      zod: 3.25.76
 
   convex@1.25.4(react@19.1.0):
     dependencies:

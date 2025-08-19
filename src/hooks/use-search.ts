@@ -16,7 +16,7 @@ const URL_DEBOUNCE = 500;
 export function useSearch(): SearchState & SearchActions {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const searchAction = useAction(api.semantic_search.searchArticles);
+  const searchAction = useAction(api.rag_search.searchArticlesRAG);
 
   const [query, setQuery] = useState(searchParams.get("q") || "");
   const [results, setResults] = useState<SearchResult[]>([]);
