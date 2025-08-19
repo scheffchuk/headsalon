@@ -9,28 +9,22 @@ type SearchResultItemProps = {
 };
 
 export function SearchResultItem({ article, query, onClick }: SearchResultItemProps) {
-  // Create a clean excerpt from either the excerpt field or the first relevant chunk
+  // Create excerpt with simplified logic - backend now provides clean excerpts
   const createExcerpt = () => {
-    // First try to use the excerpt field if available
+    // Prefer the excerpt field provided by the backend
     if (article.excerpt && article.excerpt.trim()) {
-      return article.excerpt.slice(0, 200);
+      return article.excerpt;
     }
     
-    // Fall back to first relevant chunk, but create a cleaner excerpt
+    // Fall back to first relevant chunk content if needed
     if (article.relevantChunks?.[0]?.content) {
       const content = article.relevantChunks[0].content;
-      // Remove the title from the content if it appears at the beginning
-      const contentWithoutTitle = content.replace(new RegExp(`^${article.title}.*?\n\n?`, 's'), '');
-      // Take the first 200 characters and ensure we break at a reasonable point
-      const truncated = contentWithoutTitle.slice(0, 200);
+      const truncated = content.slice(0, 200);
       const lastSentence = truncated.lastIndexOf('。');
       const lastComma = truncated.lastIndexOf('，');
       const breakPoint = Math.max(lastSentence, lastComma);
       
-      if (breakPoint > 50) {
-        return truncated.slice(0, breakPoint + 1);
-      }
-      return truncated;
+      return breakPoint > 50 ? truncated.slice(0, breakPoint + 1) : truncated;
     }
     
     return "";

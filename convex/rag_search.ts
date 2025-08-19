@@ -11,6 +11,7 @@ type ArticleFilters = {
   date: string;
   creationTime: string;
   tag: string;
+  title: string;
 };
 
 // Use the exact same SearchResult interface as the frontend
@@ -23,8 +24,8 @@ type SearchResult = {
   tags: string[];
   excerpt: string;
   score?: number;
-  relevantChunks?: { 
-    content: string; 
+  relevantChunks?: {
+    content: string;
     score?: number;
   }[];
   _meta?: {
@@ -36,7 +37,7 @@ type SearchResult = {
 const rag = new RAG<ArticleFilters>(components.rag, {
   textEmbeddingModel: openai.embedding("text-embedding-3-large"),
   embeddingDimension: 3072,
-  filterNames: ["slug", "date", "creationTime", "tag"],
+  filterNames: ["slug", "date", "creationTime", "tag", "title"],
 });
 
 const ARTICLES_NAMESPACE = "articles";
@@ -59,75 +60,31 @@ function preprocessChineseQuery(query: string): string {
   return processed;
 }
 
-function extractTitleAndExcerpt(chunkText: string): {
-  title: string;
-  excerpt: string;
-} {
+function extractExcerptFromContent(chunkText: string): string {
   if (!chunkText || !chunkText.trim()) {
-    return { title: "Untitled", excerpt: "" };
+    return "";
   }
 
-  // Split by double newlines first to separate title from content
+  // For excerpt, we want to skip the title and get meaningful content
   const sections = chunkText.split("\n\n");
-  let title = "Untitled";
-  let excerpt = "";
-
-  if (sections.length > 0) {
-    // First section is likely the title
-    const titleCandidate = sections[0].trim().replace(/\n/g, " ");
-
-    // More flexible title validation - look for actual content characteristics
-    if (
-      titleCandidate &&
-      titleCandidate.length > 2 &&
-      titleCandidate.length < 500 &&
-      // Avoid content that looks like body text
-      !titleCandidate.includes("。。") &&
-      !titleCandidate.includes("，，") &&
-      // Title shouldn't start with common content words
-      !titleCandidate.match(/^(这|那|在|对于|关于|根据|按照)/)
-    ) {
-      title = titleCandidate;
-    }
-
-    // Extract excerpt from remaining sections
-    if (sections.length > 1) {
-      const contentSections = sections.slice(1).join("\n\n");
-      if (contentSections.trim()) {
-        const truncated = contentSections.slice(0, 150);
-        const lastSentence = truncated.lastIndexOf("。");
-        const lastComma = truncated.lastIndexOf("，");
-        const breakPoint = Math.max(lastSentence, lastComma);
-
-        excerpt =
-          breakPoint > 30 ? truncated.slice(0, breakPoint + 1) : truncated;
-      }
-    }
+  
+  let contentToUse = chunkText;
+  
+  // If we have multiple sections, skip the first one (likely title) and use the rest
+  if (sections.length > 1) {
+    contentToUse = sections.slice(1).join("\n\n");
   }
 
-  // If still no good title found, try single line approach
-  if (title === "Untitled") {
-    const lines = chunkText.split("\n").filter((line) => line.trim());
-    if (lines.length > 0) {
-      const firstLine = lines[0].trim();
-      if (firstLine && firstLine.length > 2 && firstLine.length < 300) {
-        title = firstLine;
-        // Get excerpt from remaining lines
-        if (lines.length > 1) {
-          const remainingContent = lines.slice(1).join("\n");
-          const truncated = remainingContent.slice(0, 150);
-          const lastSentence = truncated.lastIndexOf("。");
-          const lastComma = truncated.lastIndexOf("，");
-          const breakPoint = Math.max(lastSentence, lastComma);
+  if (contentToUse.trim()) {
+    const truncated = contentToUse.slice(0, 150);
+    const lastSentence = truncated.lastIndexOf("。");
+    const lastComma = truncated.lastIndexOf("，");
+    const breakPoint = Math.max(lastSentence, lastComma);
 
-          excerpt =
-            breakPoint > 30 ? truncated.slice(0, breakPoint + 1) : truncated;
-        }
-      }
-    }
+    return breakPoint > 30 ? truncated.slice(0, breakPoint + 1) : truncated;
   }
 
-  return { title, excerpt };
+  return "";
 }
 
 function transformSearchResults(
@@ -169,12 +126,13 @@ function transformSearchResults(
       const tags =
         typeof tagValue === "string" ? tagValue.split("|").filter(Boolean) : [];
 
-      // Extract title and excerpt from the first chunk
-      let title = "Untitled";
+      // Get title directly from filter values
+      const title = (filters.get("title") as string) || "Untitled";
+      
+      // Extract excerpt from the first chunk if available
       let excerpt = "";
-
       if (result.content?.[0]?.text) {
-        ({ title, excerpt } = extractTitleAndExcerpt(result.content[0].text));
+        excerpt = extractExcerptFromContent(result.content[0].text);
       }
 
       // Create relevant chunks (max 3 for semantic search)
@@ -230,6 +188,7 @@ export const addArticleToRAG = action({
           { name: "date", value: date },
           { name: "creationTime", value: Date.now().toString() },
           { name: "tag", value: tagString },
+          { name: "title", value: title },
         ],
       });
 

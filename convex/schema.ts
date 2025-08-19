@@ -28,7 +28,7 @@ const schema = defineSchema({
     articleId: v.id("articles"),
     chunkIndex: v.number(),
     content: v.string(),
-    embedding: v.array(v.float64()), // 3072-dimensional vector (text-embedding-3-large)
+    embedding: v.array(v.float64()),
     metadata: v.object({
       title: v.string(),
       slug: v.string(),
