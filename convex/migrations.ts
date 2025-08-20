@@ -33,6 +33,3 @@ export const populateArticleTags = internalMutation({
     return { processedArticles: processedCount };
   },
 });
-
-// Note: Old embedding and RAG migration functions removed
-// Articles are now imported directly via RAG using import_articles:importArticlesBatch

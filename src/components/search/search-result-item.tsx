@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HighlightedText } from "@/components/highlighted-text";
+import { HighlightedText } from "@/components/ui/highlighted-text";
 import type { SearchResult } from "@/types/search";
 
 type SearchResultItemProps = {
@@ -15,7 +15,7 @@ export function SearchResultItem({ article, query, onClick }: SearchResultItemPr
     if (article.excerpt && article.excerpt.trim()) {
       return article.excerpt;
     }
-    
+
     // Fall back to first relevant chunk content if needed
     if (article.relevantChunks?.[0]?.content) {
       const content = article.relevantChunks[0].content;
@@ -23,10 +23,10 @@ export function SearchResultItem({ article, query, onClick }: SearchResultItemPr
       const lastSentence = truncated.lastIndexOf('。');
       const lastComma = truncated.lastIndexOf('，');
       const breakPoint = Math.max(lastSentence, lastComma);
-      
+
       return breakPoint > 50 ? truncated.slice(0, breakPoint + 1) : truncated;
     }
-    
+
     return "";
   };
 

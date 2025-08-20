@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { query, internalQuery, mutation } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
-import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
 
 // Get articles for home page - paginated
@@ -28,7 +27,6 @@ export const getArticles = query({
   },
 });
 
-// Get articles by tag - optimized with junction table
 export const getArticlesByTag = query({
   args: {
     tag: v.string(),
@@ -38,7 +36,6 @@ export const getArticlesByTag = query({
       return [];
     }
 
-    // Get article IDs for the tag, ordered by date (newest first)
     const tagEntries = await ctx.db
       .query("articleTags")
       .withIndex("by_tag_date", (q) => q.eq("tag", tag))
@@ -79,35 +76,11 @@ export const getArticleBySlug = query({
   },
 });
 
-
 // Internal query to get article by ID - used by embedding generation
 export const getArticleById = internalQuery({
   args: { id: v.id("articles") },
   handler: async (ctx, { id }) => {
     return await ctx.db.get(id);
-  },
-});
-
-// Get articles by IDs - used by semantic search results
-export const getArticlesByIds = query({
-  args: {
-    ids: v.array(v.id("articles")),
-  },
-  handler: async (ctx, { ids }) => {
-    const articles = await Promise.all(
-      ids.map((id) => ctx.db.get(id))
-    );
-
-    return articles
-      .filter((article): article is Doc<"articles"> => article !== null)
-      .map((article) => ({
-        _id: article._id,
-        title: article.title,
-        slug: article.slug,
-        excerpt: article.excerpt,
-        tags: article.tags,
-        date: article.date,
-      }));
   },
 });
 
@@ -135,7 +108,9 @@ export const createArticle = mutation({
     }
 
     // TODO: Add article to RAG system (commented out due to type issues)
-    console.log(`Article created: ${args.title} (${articleId}) - RAG integration will be handled by migration`);
+    console.log(
+      `Article created: ${args.title} (${articleId}) - RAG integration will be handled by migration`
+    );
 
     return articleId;
   },
@@ -169,7 +144,7 @@ export const updateArticle = mutation({
         .query("articleTags")
         .withIndex("by_article", (q) => q.eq("articleId", id))
         .collect();
-      
+
       for (const entry of oldTagEntries) {
         await ctx.db.delete(entry._id);
       }
@@ -192,7 +167,9 @@ export const updateArticle = mutation({
     }
 
     // TODO: Update article in RAG system (commented out due to type issues)
-    console.log(`Article updated: ${updatedArticle.title} (${id}) - RAG sync will be handled by migration`);
+    console.log(
+      `Article updated: ${updatedArticle.title} (${id}) - RAG sync will be handled by migration`
+    );
 
     return id;
   },
@@ -209,13 +186,15 @@ export const deleteArticle = mutation({
       .query("articleTags")
       .withIndex("by_article", (q) => q.eq("articleId", id))
       .collect();
-    
+
     for (const entry of tagEntries) {
       await ctx.db.delete(entry._id);
     }
 
     // TODO: Remove from RAG system (commented out due to type issues)
-    console.log(`Article deleted: ${id} - RAG removal will be handled by migration`);
+    console.log(
+      `Article deleted: ${id} - RAG removal will be handled by migration`
+    );
 
     // Delete the article
     await ctx.db.delete(id);

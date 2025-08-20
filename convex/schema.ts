@@ -22,29 +22,6 @@ const schema = defineSchema({
   })
     .index("by_tag_date", ["tag", "articleDate"])
     .index("by_article", ["articleId"]),
-
-  // Legacy table - replaced by RAG component but kept for data cleanup
-  articleEmbeddings: defineTable({
-    articleId: v.id("articles"),
-    chunkIndex: v.number(),
-    content: v.string(),
-    embedding: v.array(v.float64()),
-    metadata: v.object({
-      title: v.string(),
-      slug: v.string(),
-      tags: v.array(v.string()),
-      date: v.string(),
-      chunkStart: v.number(),
-      chunkEnd: v.number(),
-    }),
-  })
-    .vectorIndex("by_embedding", {
-      vectorField: "embedding",
-      dimensions: 3072,
-      filterFields: ["articleId", "chunkIndex"],
-    })
-    .index("by_article", ["articleId"])
-    .index("by_article_chunk", ["articleId", "chunkIndex"]),
 });
 
 export default schema;

@@ -8,12 +8,14 @@ HeadSalon is a Chinese-language blog application built with Next.js 15 and Conve
 
 ## Development Commands
 
-- `npm run dev` - Start development server with Turbopack
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
+- `pnpm dev` - Start development server with Turbopack (prefer pnpm for package management)
+- `pnpm build` - Build for production
+- `pnpm start` - Start production server
+- `pnpm lint` - Run ESLint
 - `npx convex deploy` - Deploy to Convex production (no --prod flag needed)
 - `npx convex logs` - View production logs
+
+Note: Use `pnpm` for package management when possible. The project includes a `pnpm-lock.yaml` file.
 
 ## Architecture Overview
 
@@ -54,7 +56,9 @@ The application uses two main tables with optimized indexing:
 
 **Styling**: Uses Tailwind CSS with a constrained max-width design (max-w-2xl) centered layout.
 
-**Filename Conventions**: All filenames should use kebab-case for consistency (e.g., `article-card.tsx`, `search-results.tsx`, `highlighted-text.tsx`). This applies to components, pages, utilities, and other source files.
+**Filename Conventions**: 
+- Frontend files (components, pages, utilities) should use kebab-case (e.g., `article-card.tsx`, `search-results.tsx`, `highlighted-text.tsx`)
+- Convex backend files should use snake_case with underscores (e.g., `rag_search.ts`, `import_articles.ts`, `migrations.ts`)
 
 ## Migration Notes
 

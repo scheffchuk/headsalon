@@ -3,6 +3,7 @@
 import { ArticleCard } from "@/components/article-card";
 import { ArticleCardSkeleton } from "@/components/article-card-skeleton";
 import { PaginationSkeleton } from "@/components/pagination-skeleton";
+import { StaggeredMotion } from "@/components/ui/staggered-motion";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTransition } from "react";
 import {
@@ -70,24 +71,25 @@ export function ArticlesClient({
   return (
     <div className="mx-auto py-8 mt-16">
       <div className="flex flex-col space-y-6">
-        {isPending ? (
-          // Show loading skeletons during navigation
+        {isPending
+          ? // Show loading skeletons during navigation
           Array.from({ length: 5 }).map((_, index) => (
             <ArticleCardSkeleton key={`skeleton-${index}`} />
           ))
-        ) : (
-          // Show actual articles when not loading
-          articles.map((article) => (
-            <ArticleCard key={article._id} article={article} />
-          ))
-        )}
+          : // Show actual articles when not loading
+          articles.map((article, index) => (
+            <StaggeredMotion key={article._id} index={index}>
+              <ArticleCard article={article} />
+            </StaggeredMotion>
+          ))}
       </div>
 
       {/* Show pagination or skeleton based on loading state */}
       {isPending ? (
         <PaginationSkeleton />
       ) : (
-        (canShowPrevious || canShowNext) && hasLoadedCurrentPage && (
+        (canShowPrevious || canShowNext) &&
+        hasLoadedCurrentPage && (
           <div className="mt-8">
             <Pagination>
               <PaginationContent>
