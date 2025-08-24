@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { v } from "convex/values";
-import { action, query, ActionCtx } from "./_generated/server";
+import { action, ActionCtx } from "./_generated/server";
 import { RAG } from "@convex-dev/rag";
 import { openai } from "@ai-sdk/openai";
 import { components } from "./_generated/api";
@@ -67,9 +67,9 @@ function extractExcerptFromContent(chunkText: string): string {
 
   // For excerpt, we want to skip the title and get meaningful content
   const sections = chunkText.split("\n\n");
-  
+
   let contentToUse = chunkText;
-  
+
   // If we have multiple sections, skip the first one (likely title) and use the rest
   if (sections.length > 1) {
     contentToUse = sections.slice(1).join("\n\n");
@@ -128,7 +128,7 @@ function transformSearchResults(
 
       // Get title directly from filter values
       const title = (filters.get("title") as string) || "Untitled";
-      
+
       // Extract excerpt from the first chunk if available
       let excerpt = "";
       if (result.content?.[0]?.text) {
@@ -237,6 +237,7 @@ export const searchArticlesRAG = action({
       console.log(
         `RAG search for "${query}" returned ${transformedResults.length} results`
       );
+
       return transformedResults;
     } catch (error) {
       console.error("Error in RAG search:", error);
@@ -252,7 +253,7 @@ export const getAvailableTags = action({
       const searchResult = await rag.search(ctx, {
         namespace: ARTICLES_NAMESPACE,
         query: "文章",
-        limit: 500,
+        limit: 3000,
         vectorScoreThreshold: 0.05,
       });
 
@@ -281,12 +282,4 @@ export const getAvailableTags = action({
       return { tags: [], count: 0 };
     }
   },
-});
-
-export const getRAGArticleCount = query({
-  args: {},
-  handler: async () => ({
-    message: "RAG system active",
-    namespace: ARTICLES_NAMESPACE,
-  }),
 });

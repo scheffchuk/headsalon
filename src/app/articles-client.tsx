@@ -3,7 +3,6 @@
 import { ArticleCard } from "@/components/article-card";
 import { ArticleCardSkeleton } from "@/components/article-card-skeleton";
 import { PaginationSkeleton } from "@/components/pagination-skeleton";
-import { StaggeredMotion } from "@/components/ui/staggered-motion";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTransition } from "react";
 import {
@@ -78,9 +77,7 @@ export function ArticlesClient({
           ))
           : // Show actual articles when not loading
           articles.map((article, index) => (
-            <StaggeredMotion key={article._id} index={index}>
-              <ArticleCard article={article} />
-            </StaggeredMotion>
+            <ArticleCard article={article} key={index} />
           ))}
       </div>
 

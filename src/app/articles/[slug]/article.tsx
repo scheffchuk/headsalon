@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { unstable_ViewTransition as ViewTransition } from "react";
+import React, { useRef } from "react";
 import { usePreloadedQuery, Preloaded } from "convex/react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -15,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ScrollProgress } from "@/components/ui/scroll-progress";
 
 type ArticleProps = {
   preloadedArticle: Preloaded<typeof api.articles.getArticleBySlug>;
@@ -22,6 +22,7 @@ type ArticleProps = {
 
 export function Article({ preloadedArticle }: ArticleProps) {
   const article = usePreloadedQuery(preloadedArticle);
+  const ref = useRef<HTMLDivElement>(null);
 
   // Format date for display
   const formatDate = (dateStr: string) => {
@@ -38,14 +39,15 @@ export function Article({ preloadedArticle }: ArticleProps) {
   }
 
   return (
-    <div className="mx-auto py-8">
+    <div className="mx-auto py-8" ref={ref}>
+      <div className="pointer-events-none fixed left-0 top-0 w-full z-50">
+        <ScrollProgress className="absolute bg-[#3399FF]" />
+      </div>
       <Card className="border-none shadow-none rounded-sm">
         <CardHeader>
-          <ViewTransition name={`title-${article.slug}`}>
-            <CardTitle className="text-4xl font-bold leading-relaxed">
-              {article.title}
-            </CardTitle>
-          </ViewTransition>
+          <CardTitle className="text-4xl font-bold leading-relaxed">
+            {article.title}
+          </CardTitle>
           <CardDescription className="text-lg">
             发布于
             <time dateTime={article.date} className="text-muted-foreground">
@@ -68,12 +70,12 @@ export function Article({ preloadedArticle }: ArticleProps) {
           )}
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="wrap-normal">
           {article.content ? (
             <MarkdownRenderer content={article.content} />
           ) : (
             <div className="prose prose-lg max-w-none">
-              <p className="text-muted-foreground">文章内容加载中...</p>
+              <p className="text-muted-foreground">Loading...</p>
             </div>
           )}
         </CardContent>

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePreloadedQuery, Preloaded } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import TagArticleItem from "@/components/tag-article-item";
-import { StaggeredMotion } from "@/components/ui/staggered-motion";
+import { useRef } from "react";
+import { ScrollProgress } from "@/components/ui/scroll-progress";
 
 type TagArticlesProps = {
   preloadedArticles: Preloaded<typeof api.articles.getArticlesByTag>;
@@ -13,9 +14,13 @@ type TagArticlesProps = {
 
 export function TagArticles({ preloadedArticles, tag }: TagArticlesProps) {
   const articlesByTag = usePreloadedQuery(preloadedArticles);
+  const ref = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="mx-auto mt-16">
+    <div className="mx-auto mt-16" ref={ref}>
+      <div className="pointer-events-none fixed left-0 top-0 w-full z-50">
+        <ScrollProgress className="absolute bg-[#3399FF]" />
+      </div>
       {/* Header */}
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">标签：{tag}</h1>
@@ -30,12 +35,7 @@ export function TagArticles({ preloadedArticles, tag }: TagArticlesProps) {
       ) : (
         <div className="space-y-8">
           {articlesByTag.map((article, index) => (
-            <StaggeredMotion key={article._id} index={index}>
-              <TagArticleItem
-                article={article}
-                tag={tag}
-              />
-            </StaggeredMotion>
+            <TagArticleItem article={article} tag={tag} key={index} />
           ))}
         </div>
       )}

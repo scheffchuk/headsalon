@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { LoadingText } from "@/components/ui/loading-text";
 import { ArticlesClient } from "./articles-client";
 
-const ARTICLES_PER_PAGE = 20;
+const ARTICLES_PER_PAGE = 10;
 
 // Cache the Convex query with both React cache and Next.js cache
 const getCachedArticles = cache(
@@ -33,15 +33,15 @@ type HomePageProps = {
 export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
   const page = parseInt(params.page || "1", 10);
-  
+
   // Fetch data server-side
   const articles = await getCachedArticles(page);
-  
+
   // Calculate current page boundaries
   const startIndex = (page - 1) * ARTICLES_PER_PAGE;
   const endIndex = startIndex + ARTICLES_PER_PAGE;
   const currentPageArticles = articles.page.slice(startIndex, endIndex);
-  
+
   // Determine pagination state
   const hasLoadedCurrentPage =
     articles.page.length >=

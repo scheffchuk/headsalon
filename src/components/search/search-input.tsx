@@ -16,15 +16,15 @@ export function SearchInput({ query, onChange, onClear, isLoading }: SearchInput
         type="search"
         value={query}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="搜索文章标题或内容..."
+        placeholder="你感兴趣的主题..."
         className="pl-10 pr-10 text-base md:text-sm"
       />
       <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
         ) : query ? (
-          <button 
-            onClick={onClear} 
+          <button
+            onClick={onClear}
             className="text-muted-foreground hover:text-foreground"
             aria-label="Clear search"
           >
