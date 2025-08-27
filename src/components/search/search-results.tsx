@@ -17,7 +17,7 @@ export function SearchResults({
   isLoading,
   lastSearchedQuery,
   hasSearched,
-  onArticleClick
+  onArticleClick,
 }: SearchResultsProps) {
   // Determine current state
   if (!query.trim()) {
@@ -32,24 +32,35 @@ export function SearchResults({
     return (
       <div className="space-y-6">
         <div className="text-sm text-muted-foreground border-b pb-3">
-          找到 <span className="font-medium text-foreground">{results.length}</span> 篇有关
-          <span className="font-medium text-foreground"> &quot;{query}&quot; </span>的文章
+          找到{" "}
+          <span className="font-medium text-foreground">{results.length}</span>{" "}
+          篇有关
+          <span className="font-medium text-foreground">
+            {" "}
+            &quot;{query}&quot;{" "}
+          </span>
+          的文章
         </div>
 
-        {results.map((article) => (
-          <SearchResultItem
-            key={article._id}
-            article={article}
-            query={query}
-            onClick={onArticleClick}
-          />
-        ))}
+        <div className="flex flex-col space-y-6">
+          {results.map((article) => (
+            <SearchResultItem
+              key={article._id}
+              article={article}
+              onClick={onArticleClick}
+            />
+          ))}
+        </div>
       </div>
     );
   }
 
   // Only show no-results if we have actually searched and got no results
-  if (results.length === 0 && query.trim() === lastSearchedQuery && hasSearched) {
+  if (
+    results.length === 0 &&
+    query.trim() === lastSearchedQuery &&
+    hasSearched
+  ) {
     return <SearchStates state="no-results" query={query} />;
   }
 

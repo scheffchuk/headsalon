@@ -2,7 +2,7 @@ import { Skeleton } from "./ui/skeleton";
 
 export function ArticleCardSkeleton() {
   return (
-    <article className="py-4">
+    <article className="py-4 animate-pulse">
       {/* Title skeleton */}
       <Skeleton className="h-10 w-3/5 mb-3 rounded-sm" />
 
