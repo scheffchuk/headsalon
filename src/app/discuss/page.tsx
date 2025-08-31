@@ -89,7 +89,7 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="relative h-[calc(100vh-10rem)] mt-6">
+    <div className="relative h-[calc(100vh-10rem)] mt-3">
       <div className="flex flex-col h-full">
         <Conversation className="h-full">
           <ConversationContent>

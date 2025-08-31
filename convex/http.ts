@@ -56,6 +56,7 @@ http.route({
               api.rag_search.searchArticlesRAG,
               {
                 query,
+                limit: 20,
               }
             );
 

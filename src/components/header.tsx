@@ -7,7 +7,7 @@ import CenterUnderline from "./ui/underline-center";
 export default function Header() {
   return (
     <header>
-      <div className="flex items-center justify-between py-10">
+      <div className="flex items-center justify-between pt-10">
         <Link href="/">
           <Image
             src={Logo}
