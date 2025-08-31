@@ -15,14 +15,13 @@ type ArticleFilters = {
 };
 
 // Use the exact same SearchResult interface as the frontend
-type SearchResult = {
+export type SearchResult = {
   _id: string;
   articleId: string;
   title: string;
   slug: string;
   date: string;
   tags: string[];
-  excerpt: string;
   score?: number;
   relevantChunks?: {
     content: string;
@@ -58,33 +57,6 @@ function preprocessChineseQuery(query: string): string {
   }
 
   return processed;
-}
-
-function extractExcerptFromContent(chunkText: string): string {
-  if (!chunkText || !chunkText.trim()) {
-    return "";
-  }
-
-  // For excerpt, we want to skip the title and get meaningful content
-  const sections = chunkText.split("\n\n");
-
-  let contentToUse = chunkText;
-
-  // If we have multiple sections, skip the first one (likely title) and use the rest
-  if (sections.length > 1) {
-    contentToUse = sections.slice(1).join("\n\n");
-  }
-
-  if (contentToUse.trim()) {
-    const truncated = contentToUse.slice(0, 150);
-    const lastSentence = truncated.lastIndexOf("。");
-    const lastComma = truncated.lastIndexOf("，");
-    const breakPoint = Math.max(lastSentence, lastComma);
-
-    return breakPoint > 30 ? truncated.slice(0, breakPoint + 1) : truncated;
-  }
-
-  return "";
 }
 
 function transformSearchResults(
@@ -129,12 +101,6 @@ function transformSearchResults(
       // Get title directly from filter values
       const title = (filters.get("title") as string) || "Untitled";
 
-      // Extract excerpt from the first chunk if available
-      let excerpt = "";
-      if (result.content?.[0]?.text) {
-        excerpt = extractExcerptFromContent(result.content[0].text);
-      }
-
       // Create relevant chunks (max 3 for semantic search)
       const relevantChunks =
         result.content?.slice(0, 3).map((chunk: any) => ({
@@ -149,7 +115,6 @@ function transformSearchResults(
         slug: (filters.get("slug") as string) || "",
         tags,
         date: (filters.get("date") as string) || "",
-        excerpt,
         score: result.score,
         relevantChunks,
         _meta: {

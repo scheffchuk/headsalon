@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { 
-  cacheSearchResults, 
-  getCachedSearchResults, 
-  clearSearchCache 
+import {
+  cacheSearchResults,
+  getCachedSearchResults,
+  clearSearchCache,
 } from "@/utils/search-cache";
-import type { SearchResult, SearchState, SearchActions } from "@/types/search";
+import type { SearchState, SearchActions, SearchResult } from "@/types/search";
 
 const SEARCH_LIMIT = 40;
 const SEARCH_DEBOUNCE = 300;
@@ -35,7 +35,7 @@ export function useSearch(): SearchState & SearchActions {
         setHasSearched(true);
         // Restore scroll position after a brief delay to ensure DOM is ready
         setTimeout(() => {
-          window.scrollTo({ top: cached.scrollPosition, behavior: 'smooth' });
+          window.scrollTo({ top: cached.scrollPosition, behavior: "smooth" });
         }, 50);
       }
     }
@@ -62,12 +62,15 @@ export function useSearch(): SearchState & SearchActions {
 
       setIsLoading(true);
       try {
-        const searchResults = await searchAction({ query, limit: SEARCH_LIMIT });
+        const searchResults = await searchAction({
+          query,
+          limit: SEARCH_LIMIT,
+        });
         const results = searchResults || [];
         setResults(results);
         setLastSearchedQuery(query);
         setHasSearched(true);
-        
+
         // Cache the results
         cacheSearchResults(query, SEARCH_LIMIT, results);
       } catch (error) {
@@ -87,7 +90,9 @@ export function useSearch(): SearchState & SearchActions {
   // Update URL when query changes
   useEffect(() => {
     const updateUrl = () => {
-      const url = query.trim() ? `/search?q=${encodeURIComponent(query)}` : "/search";
+      const url = query.trim()
+        ? `/search?q=${encodeURIComponent(query)}`
+        : "/search";
       router.replace(url, { scroll: false });
     };
 

@@ -1,5 +1,6 @@
 // Shared types for search functionality
 
+// Custom SearchResult type that matches the Convex backend
 export type SearchResult = {
   _id: string;
   articleId: string;
@@ -7,10 +8,9 @@ export type SearchResult = {
   slug: string;
   date: string;
   tags: string[];
-  excerpt: string;
   score?: number;
-  relevantChunks?: { 
-    content: string; 
+  relevantChunks?: {
+    content: string;
     score?: number;
   }[];
   _meta?: {

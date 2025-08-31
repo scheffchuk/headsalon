@@ -35,7 +35,7 @@ export function SearchResultItem({ article, onClick }: SearchResultItemProps) {
 
       {article.tags && article.tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
-          {article.tags.map((tag) => (
+          {article.tags.map((tag: string) => (
             <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}>
               <Badge
                 variant="secondary"

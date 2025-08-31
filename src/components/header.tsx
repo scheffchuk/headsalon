@@ -7,7 +7,7 @@ import CenterUnderline from "./ui/underline-center";
 export default function Header() {
   return (
     <header>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between py-10">
         <Link href="/">
           <Image
             src={Logo}
@@ -28,7 +28,10 @@ export default function Header() {
           <Link href="/about" className="hover:underline hover:text-[#3399ff]">
             <CenterUnderline>About</CenterUnderline>
           </Link>
-          <Link href="/" className="hover:underline hover:text-[#3399ff]">
+          <Link
+            href="/discuss"
+            className="hover:underline hover:text-[#3399ff]"
+          >
             <CenterUnderline>Discuss</CenterUnderline>
           </Link>
         </nav>

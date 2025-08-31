@@ -9,6 +9,7 @@
  */
 
 import type * as articles from "../articles.js";
+import type * as http from "../http.js";
 import type * as import_articles from "../import_articles.js";
 import type * as migrations from "../migrations.js";
 import type * as rag_search from "../rag_search.js";
@@ -29,6 +30,7 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   articles: typeof articles;
+  http: typeof http;
   import_articles: typeof import_articles;
   migrations: typeof migrations;
   rag_search: typeof rag_search;
