@@ -25,6 +25,13 @@ export default function Header() {
           >
             <CenterUnderline>Search</CenterUnderline>
           </Link>
+          <Link
+            href="/flashing"
+            className="hover:underline hover:text-[#3399ff] transition-colors"
+            aria-label="刷机包"
+          >
+            <CenterUnderline>Flashing</CenterUnderline>
+          </Link>
           <Link href="/about" className="hover:underline hover:text-[#3399ff]">
             <CenterUnderline>About</CenterUnderline>
           </Link>
