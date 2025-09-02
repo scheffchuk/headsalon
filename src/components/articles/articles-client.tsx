@@ -2,7 +2,7 @@
 
 import { ArticleCard } from "@/components/article-card";
 import { ArticleCardSkeleton } from "@/components/article-card-skeleton";
-import { PaginationSkeleton } from "@/components/pagination-skeleton";
+import { PaginationSkeleton } from "@/components/ui/pagination-skeleton";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTransition } from "react";
 import {
