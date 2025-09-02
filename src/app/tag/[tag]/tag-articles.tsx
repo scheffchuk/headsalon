@@ -17,7 +17,7 @@ export function TagArticles({ preloadedArticles, tag }: TagArticlesProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="mx-auto mt-16" ref={ref}>
+    <div className="mx-auto mt-16 pb-8" ref={ref}>
       <div className="pointer-events-none fixed left-0 top-0 w-full z-50">
         <ScrollProgress className="absolute bg-[#3399FF]" />
       </div>
