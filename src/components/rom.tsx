@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useMemo, useState, useEffect, cache } from "react";
+import React, {
+  useMemo,
+  use,
+  cache,
+  Component,
+  ErrorInfo,
+  ReactNode,
+} from "react";
 import Link from "next/link";
 
 type RoadmapNode = {
@@ -30,6 +37,7 @@ interface TreeLink {
 interface RoadmapTreeProps {
   data: RoadmapNode;
   width?: number;
+  className?: string;
 }
 
 // Layout configuration constants
@@ -171,7 +179,7 @@ const getNodeStrokeClass = (node: LayoutNode): string => {
 };
 
 const getTextClass = (node: LayoutNode): string =>
-  node.isRoot ? "text-base font-bold" : "text-xs font-semibold";
+  node.isRoot ? "text-base font-bold" : "text-lg font-semibold";
 
 const getTextFill = (node: LayoutNode): string =>
   node.isRoot ? "#1f2937" : "#374151";
@@ -198,8 +206,8 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node }) => (
           dy={3}
           dx={6}
           textAnchor="start"
-          className="text-xs"
-          fill="#2563eb"
+          className="text-md"
+          fill="#3399ff"
           pointerEvents="none"
         >
           {node.name}
@@ -234,20 +242,34 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node }) => (
 );
 
 // Main component
-export default function Rom({ data, width = 800 }: RoadmapTreeProps) {
-  const { nodes, links, actualHeight } = useMemo(() => {
+export default function Rom({ data, width, className = "" }: RoadmapTreeProps) {
+  const { nodes, links, actualHeight, calculatedWidth } = useMemo(() => {
     const { nodes, actualHeight } = computeTreeLayout(data);
     const links = generateLinks(nodes);
-    return { nodes, links, actualHeight };
+
+    // Calculate the required width based on the deepest node
+    const maxDepth = Math.max(...nodes.map((node) => node.depth));
+    const calculatedWidth =
+      LAYOUT_CONFIG.BASE_X +
+      (maxDepth + 1) * LAYOUT_CONFIG.HORIZONTAL_INDENT +
+      100;
+
+    return { nodes, links, actualHeight, calculatedWidth };
   }, [data]);
 
+  // Use provided width or calculated width
+  const svgWidth = width || calculatedWidth;
+
   return (
-    <div className="roadmap-tree w-full">
-      <div>
+    <div className={`roadmap-tree w-full overflow-x-auto ${className}`}>
+      <div className="min-w-fit">
         <svg
-          width={width + MARGIN.right + MARGIN.left}
+          width={svgWidth + MARGIN.right + MARGIN.left}
           height={actualHeight + MARGIN.top + MARGIN.bottom}
-          className="font-sans"
+          className="font-sans max-w-full h-auto"
+          viewBox={`0 0 ${svgWidth + MARGIN.right + MARGIN.left} ${actualHeight + MARGIN.top + MARGIN.bottom
+            }`}
+          preserveAspectRatio="xMinYMin meet"
         >
           <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
             {/* Render connection lines */}
@@ -278,17 +300,7 @@ const LoadingState = () => (
   </div>
 );
 
-// Error component
-const ErrorState: React.FC<{ message: string }> = ({ message }) => (
-  <div className="flex items-center justify-center h-64">
-    <div className="text-center">
-      <div className="text-red-500 text-lg mb-2">⚠️ 加载失败</div>
-      <div className="text-gray-600">{message}</div>
-    </div>
-  </div>
-);
-
-// Data fetching utility
+// Data fetching utility with caching
 const fetchRomData = cache(async (): Promise<RoadmapNode> => {
   const response = await fetch("/rom-file.json");
   if (!response.ok) {
@@ -297,27 +309,18 @@ const fetchRomData = cache(async (): Promise<RoadmapNode> => {
   return response.json();
 });
 
-// Data loading wrapper component
+const romDataPromise = fetchRomData();
+
+function HeadSalonRomCore() {
+  const romData = use(romDataPromise);
+  return <Rom data={romData} className="responsive-roadmap" />;
+}
+
+// Public component with built-in Suspense boundary
 export function HeadSalonRom() {
-  const [romData, setRomData] = useState<RoadmapNode | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchRomData()
-      .then((data) => {
-        setRomData(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : "Unknown error");
-        setLoading(false);
-      });
-  }, []);
-
-  if (loading) return <LoadingState />;
-  if (error) return <ErrorState message={error} />;
-  if (!romData) return null;
-
-  return <Rom data={romData} />;
+  return (
+    <React.Suspense fallback={<LoadingState />}>
+      <HeadSalonRomCore />
+    </React.Suspense>
+  );
 }
