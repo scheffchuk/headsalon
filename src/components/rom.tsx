@@ -1,20 +1,10 @@
 "use client";
 
-import React, {
-  useMemo,
-  use,
-  cache,
-  Component,
-  ErrorInfo,
-  ReactNode,
-} from "react";
+import React, { useMemo } from "react";
 import Link from "next/link";
+import { RoadmapNode, romData } from "../data/rom-data";
 
-type RoadmapNode = {
-  name: string | string[];
-  url?: string;
-  children?: RoadmapNode[];
-};
+
 
 type LayoutNode = {
   name: string;
@@ -257,7 +247,6 @@ export default function Rom({ data, width, className = "" }: RoadmapTreeProps) {
     return { nodes, links, actualHeight, calculatedWidth };
   }, [data]);
 
-  // Use provided width or calculated width
   const svgWidth = width || calculatedWidth;
 
   return (
@@ -292,35 +281,7 @@ export default function Rom({ data, width, className = "" }: RoadmapTreeProps) {
   );
 }
 
-// Loading component
-const LoadingState = () => (
-  <div className="flex items-center justify-center h-64">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
-    <span className="ml-3 text-gray-600">加载海德沙龙刷机包...</span>
-  </div>
-);
-
-// Data fetching utility with caching
-const fetchRomData = cache(async (): Promise<RoadmapNode> => {
-  const response = await fetch("/rom-file.json");
-  if (!response.ok) {
-    throw new Error("Failed to load rom file data");
-  }
-  return response.json();
-});
-
-const romDataPromise = fetchRomData();
-
-function HeadSalonRomCore() {
-  const romData = use(romDataPromise);
-  return <Rom data={romData} className="responsive-roadmap" />;
-}
-
-// Public component with built-in Suspense boundary
+// Simplified component using direct data import
 export function HeadSalonRom() {
-  return (
-    <React.Suspense fallback={<LoadingState />}>
-      <HeadSalonRomCore />
-    </React.Suspense>
-  );
+  return <Rom data={romData} className="responsive-roadmap" />;
 }
