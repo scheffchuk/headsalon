@@ -5,7 +5,7 @@ export type RoadmapNode = {
 };
 
 export const romData: RoadmapNode = {
-  name: "海德沙龙刷机包",
+  name: "刷机包",
   children: [
     {
       name: ["剃头匠预言"],

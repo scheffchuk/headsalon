@@ -169,7 +169,7 @@ const getNodeStrokeClass = (node: LayoutNode): string => {
 };
 
 const getTextClass = (node: LayoutNode): string =>
-  node.isRoot ? "text-base font-bold" : "text-lg font-semibold";
+  node.isRoot ? "text-2xl font-bold" : "text-lg font-semibold";
 
 const getTextFill = (node: LayoutNode): string =>
   node.isRoot ? "#1f2937" : "#374151";
