@@ -1,11 +1,18 @@
 import { Suspense } from "react";
-import { LoadingText } from "@/components/ui/loading-text";
-import { ArticlesContainer } from "@/components/articles/articles-container";
+import { ArticlesSkeleton } from "@/components/articles/articles-skeleton";
+import { ArticlesContent } from "../components/articles/articles-content";
 
-export default function HomePage() {
+type HomePageProps = {
+  searchParams: Promise<{ page?: string }>;
+};
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const params = await searchParams;
+  const page = parseInt(params.page || "1", 10);
+
   return (
-    <Suspense fallback={<LoadingText />}>
-      <ArticlesContainer />
+    <Suspense fallback={<ArticlesSkeleton />}>
+      <ArticlesContent page={page} />
     </Suspense>
   );
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { unstable_ViewTransition as ViewTransition } from "react";
+import { Badge } from "../ui/badge";
 
-import { Badge } from "./ui/badge";
 
 type Article = {
   _id: string;

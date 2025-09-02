@@ -1,7 +1,5 @@
 "use client";
 
-import { ArticleCard } from "@/components/article-card";
-import { ArticleCardSkeleton } from "@/components/article-card-skeleton";
 import { PaginationSkeleton } from "@/components/ui/pagination-skeleton";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTransition } from "react";
@@ -12,6 +10,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { ArticleCardSkeleton } from "../article/article-card-skeleton";
+import { ArticleCard } from "../article/article-card";
 
 type ArticlesClientProps = {
   articles: Array<{

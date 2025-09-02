@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { HeadSalonRom } from "@/components/rom";
 
 export default function RoadmapPage() {

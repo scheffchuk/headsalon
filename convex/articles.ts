@@ -11,6 +11,7 @@ export const getArticles = query({
   handler: async (ctx, args) => {
     const result = await ctx.db
       .query("articles")
+      .withIndex("by_date")
       .order("desc")
       .paginate(args.paginationOpts);
 

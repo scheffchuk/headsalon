@@ -1,4 +1,4 @@
-import { ArticleCardSkeleton } from "../article-card-skeleton";
+import { ArticleCardSkeleton } from "../article/article-card-skeleton";
 
 type SearchStatesProps = {
   state: "empty" | "loading" | "no-results";
