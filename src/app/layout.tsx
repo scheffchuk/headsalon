@@ -4,6 +4,7 @@ import "./globals.css";
 import { ConvexClientProvider } from "../providers/convex-client-provider";
 import { Toaster } from "@/components/ui/sonner";
 import Header from "@/components/header";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +34,9 @@ export default function RootLayout({
         <div className="max-w-2xl mx-auto px-4">
           <main>
             <Header />
-            <ConvexClientProvider>{children}</ConvexClientProvider>
+            <ConvexClientProvider>
+              <NuqsAdapter>{children}</NuqsAdapter>
+            </ConvexClientProvider>
           </main>
         </div>
         <Toaster />

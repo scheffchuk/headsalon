@@ -1,8 +1,9 @@
 "use client";
 
 import { PaginationSkeleton } from "@/components/ui/pagination-skeleton";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useTransition } from "react";
+import { useCallback, useEffect, useMemo, useTransition } from "react";
+import { usePaginatedQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import {
   Pagination,
   PaginationContent,
@@ -12,52 +13,87 @@ import {
 } from "@/components/ui/pagination";
 import { ArticleCardSkeleton } from "../article/article-card-skeleton";
 import { ArticleCard } from "../article/article-card";
+import { useQueryState, parseAsInteger } from "nuqs";
 
-type ArticlesClientProps = {
-  articles: Array<{
-    _id: string;
-    title: string;
-    slug: string;
-    date: string;
-    tags: string[];
-  }>;
-  currentPage: number;
-  canShowPrevious: boolean;
-  canShowNext: boolean;
-  hasLoadedCurrentPage: boolean;
-  isEmpty: boolean;
-};
+const ARTICLES_PER_PAGE = 10;
 
-export function ArticlesClient({
-  articles,
-  currentPage,
-  canShowPrevious,
-  canShowNext,
-  hasLoadedCurrentPage,
-  isEmpty,
-}: ArticlesClientProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+export function ArticlesClient() {
+  const pageParser = useMemo(() => parseAsInteger.withDefault(1), []);
+  const [pageValue, setPage] = useQueryState("page", pageParser);
   const [isPending, startTransition] = useTransition();
 
-  // Navigation function with loading state
-  const navigateToPage = (page: number) => {
-    startTransition(() => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (page === 1) {
-        params.delete("page");
-      } else {
-        params.set("page", page.toString());
-      }
-      const queryString = params.toString();
-      const url = queryString ? `${pathname}?${queryString}` : pathname;
-      router.push(url);
-    });
-  };
+  const currentPage = Math.max(pageValue ?? 1, 1);
+  const itemsPerPage = ARTICLES_PER_PAGE;
+  const desiredItemCount = currentPage * itemsPerPage;
 
-  // Empty state
-  if (isEmpty) {
+  const { results, status, loadMore } = usePaginatedQuery(
+    api.articles.getArticles,
+    {},
+    { initialNumItems: desiredItemCount }
+  );
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+
+  useEffect(() => {
+    if (results.length < desiredItemCount && status === "CanLoadMore") {
+      loadMore(itemsPerPage);
+    }
+  }, [desiredItemCount, itemsPerPage, loadMore, results.length, status]);
+
+  useEffect(() => {
+    if (status !== "Exhausted") {
+      return;
+    }
+
+    if (currentPage <= 1) {
+      return;
+    }
+
+    if (startIndex < results.length) {
+      return;
+    }
+
+    const lastPage = Math.max(1, Math.ceil(results.length / itemsPerPage));
+    if (lastPage === currentPage) {
+      return;
+    }
+
+    setPage(lastPage === 1 ? null : lastPage, { history: "replace" });
+  }, [currentPage, itemsPerPage, results.length, setPage, startIndex, status]);
+
+  const currentPageArticles = results.slice(startIndex, endIndex);
+
+  const showInitialSkeleton =
+    status === "LoadingFirstPage" && results.length === 0;
+  const showPageSkeleton =
+    (status === "LoadingMore" || isPending) &&
+    results.length < desiredItemCount &&
+    results.length >= itemsPerPage;
+  const showEmpty = status === "Exhausted" && results.length === 0;
+
+  const hasPreviousPage = currentPage > 1;
+  const hasNextPage =
+    status === "CanLoadMore" ||
+    status === "LoadingMore" ||
+    results.length > endIndex;
+
+  // Navigation function with loading state
+  const navigateToPage = useCallback(
+    (page: number) => {
+      const nextPage = Math.max(page, 1);
+      if (nextPage === currentPage) {
+        return;
+      }
+
+      startTransition(() => {
+        setPage(nextPage === 1 ? null : nextPage, { history: "replace" });
+      });
+    },
+    [currentPage, setPage, startTransition]
+  );
+
+  if (showEmpty) {
     return (
       <div className="mx-auto py-8 mt-16">
         <div className="text-center py-16">
@@ -70,27 +106,39 @@ export function ArticlesClient({
   return (
     <div className="mx-auto py-8 mt-16">
       <div className="flex flex-col space-y-6">
-        {isPending
-          ? // Show loading skeletons during navigation
-          Array.from({ length: 5 }).map((_, index) => (
-            <ArticleCardSkeleton key={`skeleton-${index}`} />
+        {showInitialSkeleton ? (
+          Array.from({ length: itemsPerPage }).map((_, index) => (
+            <ArticleCardSkeleton key={`initial-skeleton-${index}`} />
           ))
-          : // Show actual articles when not loading
-          articles.map((article, index) => (
-            <ArticleCard article={article} key={index} />
-          ))}
+        ) : (
+          <>
+            {currentPageArticles.map((article) => (
+              <ArticleCard article={article} key={article._id} />
+            ))}
+            {showPageSkeleton &&
+              Array.from(
+                {
+                  length: Math.max(
+                    itemsPerPage - currentPageArticles.length,
+                    1
+                  ),
+                },
+                (_, index) => (
+                  <ArticleCardSkeleton key={`loading-skeleton-${index}`} />
+                )
+              )}
+          </>
+        )}
       </div>
 
-      {/* Show pagination or skeleton based on loading state */}
-      {isPending ? (
+      {showInitialSkeleton || showPageSkeleton ? (
         <PaginationSkeleton />
       ) : (
-        (canShowPrevious || canShowNext) &&
-        hasLoadedCurrentPage && (
+        (hasPreviousPage || hasNextPage) && (
           <div className="mt-8">
             <Pagination>
               <PaginationContent>
-                {canShowPrevious && (
+                {hasPreviousPage && (
                   <PaginationItem>
                     <PaginationPrevious
                       onClick={() => navigateToPage(currentPage - 1)}
@@ -98,7 +146,7 @@ export function ArticlesClient({
                   </PaginationItem>
                 )}
 
-                {canShowNext && (
+                {hasNextPage && (
                   <PaginationItem>
                     <PaginationNext
                       onClick={() => navigateToPage(currentPage + 1)}

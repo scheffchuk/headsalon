@@ -17,8 +17,8 @@ export function StaggeredMotion({
   children,
   index,
   delay = 0.05,
-  maxDelay = 0.5,
-  duration = 0.3,
+  maxDelay = 0.2,
+  duration = 0.2,
   initialY = 20,
   className,
 }: StaggeredMotionItemProps) {

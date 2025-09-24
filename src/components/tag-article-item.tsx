@@ -32,7 +32,7 @@ export default function TagArticleItem({ article, tag }: TagArticleItemProps) {
           <Link
             prefetch={true}
             href={`/articles/${article.slug}`}
-            className="text-3xl font-semibold text-[#3399ff] hover:text-blue-500 transition-colors mb-3"
+            className="text-3xl font-semibold text-[#3399ff] hover:text-blue-500 transition-colors duration-200 mb-3 select-none"
           >
             {article.title}
           </Link>
@@ -47,7 +47,7 @@ export default function TagArticleItem({ article, tag }: TagArticleItemProps) {
                 key={articleTag}
                 prefetch={true}
                 href={`/tag/${encodeURIComponent(articleTag)}`}
-                className={`px-2 py-1 rounded-md text-xs transition-colors ${articleTag === tag
+                className={`px-2 py-1 rounded-md text-xs transition-colors duration-200 select-none ${articleTag === tag
                   ? "bg-blue-400 text-white"
                   : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                   }`}

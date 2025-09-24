@@ -118,5 +118,79 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+  }
+
+  [data-number] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Touch optimizations */
+  @media (hover: hover) {
+    .hover\:bg-accent:hover {
+      background-color: hsl(var(--accent));
+    }
+  }
+
+  /* Disable iOS tap highlight */
+  * {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  }
+
+  /* Prevent zoom on focus for iOS */
+  @media screen and (max-width: 768px) {
+    input[type="search"],
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+
+  /* Smooth scrolling for anchor links */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Performance optimizations */
+  [data-animate] {
+    will-change: transform, opacity;
+  }
+
+  [data-animate]:not(:hover):not(:focus) {
+    will-change: auto;
+  }
+
+  /* Disable animations during theme switching */
+  .no-transitions * {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
+  }
+
+  /* Optimize selection styling */
+  ::selection {
+    background-color: hsl(var(--primary) / 0.2);
+    color: hsl(var(--primary-foreground));
+  }
+
+  /* Pause looping animations when not in view */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-spin {
+      animation: none;
+    }
+
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

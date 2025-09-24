@@ -263,7 +263,7 @@ export const romData: RoadmapNode = {
           name: ["资产特化"],
           children: [
             {
-              url: "https://headsalon.org/archives/3456.html",
+              url: "https://headsalon.vercel.app/articles/%E8%B5%84%E4%BA%A7%E7%89%B9%E5%8C%96%E4%B8%8E%E7%BE%A4%E7%A7%9F",
               name: "①资产特化与群租",
             },
             {
@@ -683,10 +683,7 @@ export const romData: RoadmapNode = {
           url: "https://headsalon.vercel.app/articles/%E5%91%A8%E5%8F%B2%E6%9C%AD%E8%AE%B04%E5%91%A8%E5%BC%8F%E5%B0%81%E5%BB%BA%E7%9A%84%E5%86%85%E5%9C%A8%E7%BC%BA%E9%99%B7",
           name: "周式封建的内在缺陷",
         },
-        {
-          url: "https://headsalon.org/archives/5370.html",
-          name: "伯仲叔季",
-        },
+        
         {
           url: "https://headsalon.vercel.app/articles/%E5%91%A8%E5%8F%B2%E6%9C%AD%E8%AE%B06%E5%8E%89%E7%8E%8B%E5%87%BA%E5%A5%94%E4%B8%8E%E5%AE%A3%E7%8E%8B%E4%B8%AD%E5%85%B4",
           name: "厉王出奔与宣王中兴",
@@ -1028,7 +1025,7 @@ export const romData: RoadmapNode = {
           name: "#邓巴数系列#",
         },
         {
-          url: "https://headsalon.org/?s=%E6%9D%83%E5%8A%9B%E7%A7%AF%E6%9C%A8",
+          url: "https://headsalon.vercel.app/search?q=%E6%9D%83%E5%8A%9B%E7%A7%AF%E6%9C%A8",
           name: "#权力的积木系列#",
         },
         {

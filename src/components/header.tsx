@@ -20,24 +20,27 @@ export default function Header() {
         <nav className="ml-auto flex items-center text-md font-medium space-x-6 text-gray-700">
           <Link
             href="/search"
-            className="hover:underline hover:text-[#3399ff] transition-colors"
+            className="hover:text-[#3399ff] transition-colors duration-200 select-none"
             aria-label="搜索"
           >
             <CenterUnderline>Search</CenterUnderline>
           </Link>
           <Link
             href="/flashing"
-            className="hover:underline hover:text-[#3399ff] transition-colors"
+            className="hover:text-[#3399ff] transition-colors duration-200 select-none"
             aria-label="刷机包"
           >
             <CenterUnderline>Flashing</CenterUnderline>
           </Link>
-          <Link href="/about" className="hover:underline hover:text-[#3399ff]">
+          <Link
+            href="/about"
+            className="hover:text-[#3399ff] transition-colors duration-200 select-none"
+          >
             <CenterUnderline>About</CenterUnderline>
           </Link>
           <Link
             href="/discuss"
-            className="hover:underline hover:text-[#3399ff]"
+            className="hover:text-[#3399ff] transition-colors duration-200 select-none"
           >
             <CenterUnderline>Discuss</CenterUnderline>
           </Link>
