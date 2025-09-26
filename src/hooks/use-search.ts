@@ -1,32 +1,24 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { useQueryState, parseAsString } from "nuqs";
+import { useSearchParams } from "next/navigation";
 import { useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { SearchState, SearchActions, SearchResult } from "@/types/search";
 
-const SEARCH_LIMIT = 40;
+const SEARCH_LIMIT = 30;
 
 export function useSearch(): SearchState & SearchActions {
   const searchAction = useAction(api.rag_search.searchArticlesRAG);
   const [isPending, startTransition] = useTransition();
-  
+  const searchParams = useSearchParams();
 
-  const [queryValue, setQueryValue] = useQueryState("q", parseAsString.withOptions({
-    history: "replace",
-    scroll: false,
-    // Use startTransition from React to reflect loading state during URL updates
-    startTransition,
-    // Enable server notifications if needed in the future
-    shallow: false,
-  }));
-  
-  const query = queryValue ?? "";
+  const query = searchParams.get("q") ?? "";
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const [results, setResults] = useState<SearchResult[]>([]);
   const lastQueriedRef = useRef<string>("");
 
   useEffect(() => {
-    const trimmed = query.trim();
+    const trimmed = searchQuery.trim();
     if (trimmed === "") {
       setResults([]);
       return;
@@ -54,25 +46,25 @@ export function useSearch(): SearchState & SearchActions {
     return () => {
       cancelled = true;
     };
-  }, [query, searchAction]);
+  }, [searchQuery, searchAction]);
 
-  const setQuery = useCallback(
-    (value: string) => {
-      const nextValue = value.length === 0 ? null : value;
-      setQueryValue(nextValue);
+  const executeSearch = useCallback(
+    (searchTerm: string) => {
+      setSearchQuery(searchTerm);
     },
-    [setQueryValue]
+    []
   );
 
   const handleClear = useCallback(() => {
-    setQueryValue(null);
-  }, [setQueryValue]);
+    setSearchQuery("");
+    setResults([]);
+  }, []);
 
   return {
     query,
     results,
     isLoading: isPending,
-    setQuery,
+    executeSearch,
     handleClear,
   };
 }

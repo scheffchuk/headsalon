@@ -3,8 +3,7 @@
 import * as React from "react"
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useDebouncer } from '@tanstack/react-pacer'
-import { Search, X, Clock, Hash } from 'lucide-react'
+import { Search, X, Clock, Hash, ArrowRight } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn } from "@/lib/utils"
 
@@ -17,7 +16,6 @@ interface SearchFilter {
 interface SmartSearchProps {
   className?: string
   placeholder?: string
-  debounceMs?: number
   urlSync?: boolean
   onSearch?: (query: string, filters?: string[]) => void
   searchHistory?: boolean
@@ -32,7 +30,6 @@ interface SmartSearchProps {
 export function SmartSearch({
   className,
   placeholder = "Search...",
-  debounceMs = 300,
   urlSync = true,
   onSearch,
   searchHistory = false,
@@ -50,25 +47,8 @@ export function SmartSearch({
   const [searchHistoryList, setSearchHistoryList] = useState<string[]>([])
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const [activeFilters, setActiveFilters] = useState<string[]>([])
-  const [searchState, setSearchState] = useState<'idle' | 'searching' | 'success' | 'error'>('idle')
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const isInternalUpdate = useRef(false)
-
-  const searchDebouncer = useDebouncer(
-    (searchQuery: string, filters: string[] = []) => {
-      setSearchState('searching')
-      onSearch?.(searchQuery, filters)
-      saveToHistory(searchQuery)
-      setTimeout(() => setSearchState('success'), 200)
-    },
-    {
-      wait: debounceMs
-    },
-    (state) => ({ isPending: state.isPending })
-  )
-
-  const isLoading = searchDebouncer.state.isPending;
 
   useEffect(() => {
     if (searchHistory) {
@@ -132,11 +112,14 @@ export function SmartSearch({
         e.preventDefault()
         if (selectedIndex >= 0 && allItems[selectedIndex]) {
           const selectedItem = allItems[selectedIndex]
-          handleSearch(selectedItem)
+          // Fill input only, do not submit search automatically
+          setQuery(selectedItem)
+          if (urlSync) {
+            const params = new URLSearchParams(searchParams)
+            params.set('q', selectedItem)
+            router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
+          }
           onSuggestionSelect?.(selectedItem)
-        } else if (query.trim()) {
-          const { filters, cleanQuery } = parseSearchQuery(query)
-          searchDebouncer.maybeExecute(cleanQuery, [...activeFilters, ...filters])
         }
         setShowSuggestions(false)
         setSelectedIndex(-1)
@@ -151,21 +134,9 @@ export function SmartSearch({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
-    isInternalUpdate.current = true
     setQuery(value)
-    setSearchState('idle')
 
-    if (value.trim()) {
-      const { filters, cleanQuery } = parseSearchQuery(value)
-      const combinedFilters = [...activeFilters, ...filters]
-      searchDebouncer.maybeExecute(cleanQuery, combinedFilters)
-      onFilterChange?.(combinedFilters)
-    } else {
-      searchDebouncer.cancel()
-      onSearch?.(value, activeFilters)
-      setSearchState('idle')
-    }
-
+    // Only update URL without triggering search
     if (urlSync) {
       const params = new URLSearchParams(searchParams)
       if (value) {
@@ -175,29 +146,30 @@ export function SmartSearch({
       }
       router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
     }
-    setTimeout(() => {
-      isInternalUpdate.current = false
-    }, 0)
   }
 
   const handleSearch = (value: string) => {
     setQuery(value)
-    setSearchState('idle')
 
     if (value.trim()) {
       const { filters, cleanQuery } = parseSearchQuery(value)
       const combinedFilters = [...activeFilters, ...filters]
-      searchDebouncer.maybeExecute(cleanQuery, combinedFilters)
+      onSearch?.(cleanQuery, combinedFilters)
       onFilterChange?.(combinedFilters)
+      saveToHistory(cleanQuery)
     } else {
-      searchDebouncer.cancel()
       onSearch?.(value, activeFilters)
-      setSearchState('idle')
     }
   }
 
   const handleSuggestionClick = (suggestion: string) => {
-    handleSearch(suggestion)
+    // Fill input only, do not submit search automatically
+    setQuery(suggestion)
+    if (urlSync) {
+      const params = new URLSearchParams(searchParams)
+      params.set('q', suggestion)
+      router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
+    }
     onSuggestionSelect?.(suggestion)
     setShowSuggestions(false)
     setSelectedIndex(-1)
@@ -210,18 +182,12 @@ export function SmartSearch({
 
     setActiveFilters(newFilters)
     onFilterChange?.(newFilters)
-
-    if (query.trim()) {
-      searchDebouncer.maybeExecute(query, newFilters)
-    }
   }
 
   const clearQuery = () => {
     setQuery('')
     setShowSuggestions(false)
     setSelectedIndex(-1)
-    setSearchState('idle')
-    onSearch?.('', activeFilters)
 
     if (urlSync) {
       const params = new URLSearchParams(searchParams)
@@ -259,14 +225,13 @@ export function SmartSearch({
   useEffect(() => {
     if (urlSync) {
       const urlQuery = searchParams.get('q') || ''
-      if (urlQuery && !query) {
+      if (urlQuery !== query) {
         setQuery(urlQuery)
-        const { filters, cleanQuery } = parseSearchQuery(urlQuery)
-        searchDebouncer.maybeExecute(cleanQuery, [...activeFilters, ...filters])
+        // Don't auto-search on URL load, just set the query
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [searchParams])
 
   const filteredSuggestions = suggestions.filter(s =>
     s.toLowerCase().includes(query.toLowerCase()) && s !== query
@@ -299,13 +264,10 @@ export function SmartSearch({
 
       <div className="relative group">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className={cn(
-            "h-5 w-5 transition-colors duration-200",
-            searchState === 'searching' && "text-primary",
-            searchState === 'success' && "text-green-500",
-            searchState === 'error' && "text-destructive",
-            searchState === 'idle' && "text-muted-foreground group-focus-within:text-foreground"
-          )} />
+        <Search className={cn(
+          "h-5 w-5 transition-colors duration-200",
+          "text-muted-foreground group-focus-within:text-foreground"
+        )} />
         </div>
 
         <Input
@@ -316,28 +278,30 @@ export function SmartSearch({
           onKeyDown={handleKeyDown}
           onFocus={() => setShowSuggestions(true)}
           placeholder={placeholder}
-          className="pl-10 pr-10 transition-all duration-200"
+          className="pl-10 pr-20 transition-all duration-200"
         />
+
+        {/* Submit button */}
+        <button
+          onClick={() => handleSearch(query)}
+          disabled={!query.trim()}
+          className="absolute inset-y-0 right-8 flex items-center pr-1 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ArrowRight className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+        </button>
 
         {query && (
           <button
             onClick={clearQuery}
-            className="absolute inset-y-0 right-8 flex items-center pr-1"
+            className="absolute inset-y-0 right-0 flex items-center pr-3"
           >
             <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
           </button>
         )}
 
-        {isLoading && query.trim() && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-            <div className="relative">
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary/30 border-t-primary"></div>
-              <div className="absolute inset-0 rounded-full bg-primary/10 animate-pulse"></div>
-            </div>
-          </div>
-        )}
+        {/* No internal loading spinner; parent controls loading state */}
 
-        {query.trim() && !isLoading && resultCount !== undefined && (
+        {query.trim() && resultCount !== undefined && (
           <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full shadow-lg">
             {resultCount}
           </div>

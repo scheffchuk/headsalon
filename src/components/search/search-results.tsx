@@ -21,14 +21,11 @@ export function SearchResults({
     return <SearchStates state="loading" />;
   }
 
-    return (
-      
-
-        <div className="flex flex-col space-y-6">
-          {results.map((article) => (
-            <SearchResultItem key={article._id} article={article} />
-          ))}
-        </div>
-    );
-  }
-
+  return (
+    <div className="flex flex-col space-y-6">
+      {results.map((article) => (
+        <SearchResultItem key={article._id} article={article} />
+      ))}
+    </div>
+  );
+}

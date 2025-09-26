@@ -6,7 +6,7 @@ import { SearchResults } from "@/components/search";
 import { SmartSearch } from "@/components/smart-search";
 
 export default function SearchPageContent() {
-  const { query, results, isLoading, setQuery } = useSearch();
+  const { query, results, isLoading, executeSearch } = useSearch();
 
   return (
     <div className="mx-auto mt-16">
@@ -17,9 +17,7 @@ export default function SearchPageContent() {
           placeholder="你感兴趣的主题..."
           searchHistory={true}
           // suggestions={suggestions}
-          onSearch={setQuery}
-          resultCount={results.length}
-          debounceMs={300}
+          onSearch={executeSearch}
           urlSync={true}
         />
       </header>
