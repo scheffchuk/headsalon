@@ -1,129 +1,78 @@
-import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useQueryState, parseAsString } from "nuqs";
 import { useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import {
-  cacheSearchResults,
-  getCachedSearchResults,
-  clearSearchCache,
-} from "@/utils/search-cache";
 import type { SearchState, SearchActions, SearchResult } from "@/types/search";
 
 const SEARCH_LIMIT = 40;
-const SEARCH_DEBOUNCE = 300;
-const URL_DEBOUNCE = 500;
 
 export function useSearch(): SearchState & SearchActions {
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const searchAction = useAction(api.rag_search.searchArticlesRAG);
+  const [isPending, startTransition] = useTransition();
+  
 
-  const [query, setQuery] = useState(searchParams.get("q") || "");
+  const [queryValue, setQueryValue] = useQueryState("q", parseAsString.withOptions({
+    history: "replace",
+    scroll: false,
+    // Use startTransition from React to reflect loading state during URL updates
+    startTransition,
+    // Enable server notifications if needed in the future
+    shallow: false,
+  }));
+  
+  const query = queryValue ?? "";
+
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastSearchedQuery, setLastSearchedQuery] = useState("");
-  const [hasSearched, setHasSearched] = useState(false);
+  const lastQueriedRef = useRef<string>("");
 
-  // Check for cached results on component mount and restore state
   useEffect(() => {
-    const initialQuery = searchParams.get("q");
-    if (initialQuery) {
-      const cached = getCachedSearchResults(initialQuery, SEARCH_LIMIT);
-      if (cached) {
-        setResults(cached.results);
-        setLastSearchedQuery(initialQuery);
-        setHasSearched(true);
-        // Restore scroll position after a brief delay to ensure DOM is ready
-        setTimeout(() => {
-          window.scrollTo({ top: cached.scrollPosition, behavior: "smooth" });
-        }, 50);
-      }
+    const trimmed = query.trim();
+    if (trimmed === "") {
+      setResults([]);
+      return;
     }
-  }, [searchParams]);
 
-  // Search when query changes
-  useEffect(() => {
-    const search = async () => {
-      if (!query.trim()) {
-        setResults([]);
-        setLastSearchedQuery("");
-        setHasSearched(false);
-        return;
-      }
+    let cancelled = false;
+    lastQueriedRef.current = trimmed;
 
-      // Check cache first
-      const cached = getCachedSearchResults(query, SEARCH_LIMIT);
-      if (cached) {
-        setResults(cached.results);
-        setLastSearchedQuery(query);
-        setHasSearched(true);
-        return;
-      }
+    startTransition(() => {
+      (async () => {
+        try {
+          const data = await searchAction({ query: trimmed, limit: SEARCH_LIMIT });
+          if (!cancelled && lastQueriedRef.current === trimmed) {
+            setResults(Array.isArray(data) ? data : []);
+          }
+        } catch (err) {
+          if (!cancelled) {
+            console.error("Search failed:", err);
+            setResults([]);
+          }
+        }
+      })();
+    });
 
-      setIsLoading(true);
-      try {
-        const searchResults = await searchAction({
-          query,
-          limit: SEARCH_LIMIT,
-        });
-        const results = searchResults || [];
-        setResults(results);
-        setLastSearchedQuery(query);
-        setHasSearched(true);
-
-        // Cache the results
-        cacheSearchResults(query, SEARCH_LIMIT, results);
-      } catch (error) {
-        console.error("Search failed:", error);
-        setResults([]);
-        setLastSearchedQuery(query);
-        setHasSearched(true);
-      } finally {
-        setIsLoading(false);
-      }
+    return () => {
+      cancelled = true;
     };
-
-    const timeoutId = setTimeout(search, SEARCH_DEBOUNCE);
-    return () => clearTimeout(timeoutId);
   }, [query, searchAction]);
 
-  // Update URL when query changes
-  useEffect(() => {
-    const updateUrl = () => {
-      const url = query.trim()
-        ? `/search?q=${encodeURIComponent(query)}`
-        : "/search";
-      router.replace(url, { scroll: false });
-    };
+  const setQuery = useCallback(
+    (value: string) => {
+      const nextValue = value.length === 0 ? null : value;
+      setQueryValue(nextValue);
+    },
+    [setQueryValue]
+  );
 
-    const timeoutId = setTimeout(updateUrl, URL_DEBOUNCE);
-    return () => clearTimeout(timeoutId);
-  }, [query, router]);
-
-  // Actions
-  const handleClear = () => {
-    setQuery("");
-    setResults([]);
-    setLastSearchedQuery("");
-    setHasSearched(false);
-    clearSearchCache();
-  };
-
-  const handleArticleClick = () => {
-    if (query.trim() && results.length > 0) {
-      const scrollPosition = window.scrollY;
-      cacheSearchResults(query, SEARCH_LIMIT, results, scrollPosition);
-    }
-  };
+  const handleClear = useCallback(() => {
+    setQueryValue(null);
+  }, [setQueryValue]);
 
   return {
     query,
     results,
-    isLoading,
-    lastSearchedQuery,
-    hasSearched,
+    isLoading: isPending,
     setQuery,
     handleClear,
-    handleArticleClick,
   };
 }

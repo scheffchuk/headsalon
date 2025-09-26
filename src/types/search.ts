@@ -23,12 +23,9 @@ export type SearchState = {
   query: string;
   results: SearchResult[];
   isLoading: boolean;
-  lastSearchedQuery: string;
-  hasSearched: boolean;
 };
 
 export type SearchActions = {
   setQuery: (query: string) => void;
   handleClear: () => void;
-  handleArticleClick: () => void;
 };

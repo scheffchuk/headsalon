@@ -5,10 +5,9 @@ import type { SearchResult } from "@/types/search";
 
 type SearchResultItemProps = {
   article: SearchResult;
-  onClick: () => void;
 };
 
-export function SearchResultItem({ article, onClick }: SearchResultItemProps) {
+export function SearchResultItem({ article }: SearchResultItemProps) {
   // Format date for display (matching main article card format)
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -22,7 +21,7 @@ export function SearchResultItem({ article, onClick }: SearchResultItemProps) {
   return (
     <article className="py-4">
       <ViewTransition name={`title-${article.slug}`}>
-        <Link href={`/articles/${article.slug}`} prefetch={true} onClick={onClick}>
+        <Link href={`/articles/${article.slug}`} prefetch={true}>
           <h2 className="text-3xl font-semibold text-[#3399ff] hover:text-blue-500 transition-colors mb-3">
             {article.title}
           </h2>
