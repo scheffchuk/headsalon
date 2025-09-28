@@ -26,6 +26,6 @@ export type SearchState = {
 };
 
 export type SearchActions = {
-  executeSearch: (searchTerm: string) => void;
+  setQuery: (query: string) => void;
   handleClear: () => void;
 };
