@@ -21,7 +21,7 @@ export function SearchResultItem({ article }: SearchResultItemProps) {
   return (
     <article className="py-4">
       <ViewTransition name={`title-${article.slug}`}>
-        <Link href={`/articles/${article.slug}`} prefetch={true}>
+        <Link href={`/articles/${article.slug}`} prefetch={true} target="_blank" rel="noopener noreferrer">
           <h2 className="text-3xl font-semibold text-[#3399ff] hover:text-blue-500 transition-colors mb-3">
             {article.title}
           </h2>
