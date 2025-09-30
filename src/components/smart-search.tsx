@@ -3,7 +3,6 @@
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useDebouncer } from "@tanstack/react-pacer";
 import { Search, X, Clock, Hash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -17,9 +16,9 @@ interface SearchFilter {
 interface SmartSearchProps {
   className?: string;
   placeholder?: string;
-  debounceMs?: number;
   urlSync?: boolean;
   onSearch?: (query: string, filters?: string[]) => void;
+  onQueryChange?: (query: string) => void;
   searchHistory?: boolean;
   suggestions?: string[];
   onSuggestionSelect?: (suggestion: string) => void;
@@ -32,9 +31,9 @@ interface SmartSearchProps {
 export function SmartSearch({
   className,
   placeholder = "Search...",
-  debounceMs = 300,
   urlSync = true,
   onSearch,
+  onQueryChange,
   searchHistory = false,
   suggestions = [],
   onSuggestionSelect,
@@ -56,21 +55,6 @@ export function SmartSearch({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isInternalUpdate = useRef(false);
-
-  const searchDebouncer = useDebouncer(
-    (searchQuery: string, filters: string[] = []) => {
-      setSearchState("searching");
-      onSearch?.(searchQuery, filters);
-      saveToHistory(searchQuery);
-      setTimeout(() => setSearchState("success"), 200);
-    },
-    {
-      wait: debounceMs,
-    },
-    (state) => ({ isPending: state.isPending })
-  );
-
-  const isLoading = searchDebouncer.state.isPending;
 
   useEffect(() => {
     if (searchHistory) {
@@ -114,6 +98,25 @@ export function SmartSearch({
     setSearchHistoryList([]);
   };
 
+  const handleSubmit = (searchQuery?: string) => {
+    const queryToSearch = searchQuery || query;
+    const trimmed = queryToSearch.trim();
+    
+    if (!trimmed) return;
+
+    const { filters, cleanQuery } = parseSearchQuery(trimmed);
+    const combinedFilters = [...activeFilters, ...filters];
+    
+    setSearchState("searching");
+    onSearch?.(cleanQuery, combinedFilters);
+    saveToHistory(cleanQuery);
+    onFilterChange?.(combinedFilters);
+    
+    setTimeout(() => setSearchState("success"), 200);
+    setShowSuggestions(false);
+    setSelectedIndex(-1);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     const filteredSuggestions = suggestions.filter((s) =>
       s.toLowerCase().includes(query.toLowerCase())
@@ -140,17 +143,13 @@ export function SmartSearch({
         e.preventDefault();
         if (selectedIndex >= 0 && allItems[selectedIndex]) {
           const selectedItem = allItems[selectedIndex];
-          handleSearch(selectedItem);
+          setQuery(selectedItem);
+          onQueryChange?.(selectedItem);
+          handleSubmit(selectedItem);
           onSuggestionSelect?.(selectedItem);
-        } else if (query.trim()) {
-          const { filters, cleanQuery } = parseSearchQuery(query);
-          searchDebouncer.maybeExecute(cleanQuery, [
-            ...activeFilters,
-            ...filters,
-          ]);
+        } else {
+          handleSubmit();
         }
-        setShowSuggestions(false);
-        setSelectedIndex(-1);
         break;
       case "Escape":
         setShowSuggestions(false);
@@ -164,18 +163,8 @@ export function SmartSearch({
     const value = e.target.value;
     isInternalUpdate.current = true;
     setQuery(value);
+    onQueryChange?.(value);
     setSearchState("idle");
-
-    if (value.trim()) {
-      const { filters, cleanQuery } = parseSearchQuery(value);
-      const combinedFilters = [...activeFilters, ...filters];
-      searchDebouncer.maybeExecute(cleanQuery, combinedFilters);
-      onFilterChange?.(combinedFilters);
-    } else {
-      searchDebouncer.cancel();
-      onSearch?.(value, activeFilters);
-      setSearchState("idle");
-    }
 
     if (urlSync) {
       const params = new URLSearchParams(searchParams);
@@ -193,27 +182,11 @@ export function SmartSearch({
     }, 0);
   };
 
-  const handleSearch = (value: string) => {
-    setQuery(value);
-    setSearchState("idle");
-
-    if (value.trim()) {
-      const { filters, cleanQuery } = parseSearchQuery(value);
-      const combinedFilters = [...activeFilters, ...filters];
-      searchDebouncer.maybeExecute(cleanQuery, combinedFilters);
-      onFilterChange?.(combinedFilters);
-    } else {
-      searchDebouncer.cancel();
-      onSearch?.(value, activeFilters);
-      setSearchState("idle");
-    }
-  };
-
   const handleSuggestionClick = (suggestion: string) => {
-    handleSearch(suggestion);
+    setQuery(suggestion);
+    onQueryChange?.(suggestion);
+    handleSubmit(suggestion);
     onSuggestionSelect?.(suggestion);
-    setShowSuggestions(false);
-    setSelectedIndex(-1);
   };
 
   const toggleFilter = (filterKey: string) => {
@@ -223,18 +196,14 @@ export function SmartSearch({
 
     setActiveFilters(newFilters);
     onFilterChange?.(newFilters);
-
-    if (query.trim()) {
-      searchDebouncer.maybeExecute(query, newFilters);
-    }
   };
 
   const clearQuery = () => {
     setQuery("");
+    onQueryChange?.("");
     setShowSuggestions(false);
     setSelectedIndex(-1);
     setSearchState("idle");
-    onSearch?.("", activeFilters);
 
     if (urlSync) {
       const params = new URLSearchParams(searchParams);
@@ -279,11 +248,7 @@ export function SmartSearch({
       const urlQuery = searchParams.get("q") || "";
       if (urlQuery && !query) {
         setQuery(urlQuery);
-        const { filters, cleanQuery } = parseSearchQuery(urlQuery);
-        searchDebouncer.maybeExecute(cleanQuery, [
-          ...activeFilters,
-          ...filters,
-        ]);
+        onQueryChange?.(urlQuery);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -319,19 +284,6 @@ export function SmartSearch({
       )}
 
       <div className="relative group">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search
-            className={cn(
-              "h-5 w-5 transition-colors duration-200",
-              searchState === "searching" && "text-primary",
-              searchState === "success" && "text-green-500",
-              searchState === "error" && "text-destructive",
-              searchState === "idle" &&
-                "text-muted-foreground group-focus-within:text-foreground"
-            )}
-          />
-        </div>
-
         <Input
           ref={inputRef}
           type="text"
@@ -340,28 +292,42 @@ export function SmartSearch({
           onKeyDown={handleKeyDown}
           onFocus={() => setShowSuggestions(true)}
           placeholder={placeholder}
-          className="pl-10 pr-10 transition-all duration-200"
+          className={cn(
+            "transition-all duration-200 rounded-full",
+            query ? "pr-20" : "pr-12"
+          )}
         />
 
-        {query && (
+        <div className="absolute inset-y-0 right-2 flex items-center gap-1">
+          {query && (
+            <>
+              <button
+                onClick={clearQuery}
+                className="p-1.5 hover:bg-muted rounded-full transition-colors"
+                type="button"
+              >
+                <X className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+              </button>
+              <div className="h-6 w-px bg-border" />
+            </>
+          )}
+
           <button
-            onClick={clearQuery}
-            className="absolute inset-y-0 right-8 flex items-center pr-1"
+            onClick={() => handleSubmit()}
+            disabled={!query.trim()}
+            className={cn(
+              "p-1.5 rounded-full transition-colors",
+              query.trim()
+                ? "hover:bg-muted text-foreground"
+                : "text-muted-foreground cursor-not-allowed"
+            )}
+            type="button"
           >
-            <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+            <Search className="h-4 w-4" />
           </button>
-        )}
+        </div>
 
-        {isLoading && query.trim() && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-            <div className="relative">
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary/30 border-t-primary"></div>
-              <div className="absolute inset-0 rounded-full bg-primary/10 animate-pulse"></div>
-            </div>
-          </div>
-        )}
-
-        {query.trim() && !isLoading && resultCount !== undefined && (
+        {query.trim() && resultCount !== undefined && (
           <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full shadow-lg">
             {resultCount}
           </div>
