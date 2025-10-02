@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import CenterUnderline from "./ui/underline-center";
+import Logo from "@/assets/logo.svg";
 
 export default function Header() {
   return (
@@ -9,12 +10,12 @@ export default function Header() {
       <div className="flex items-center justify-between pt-10">
         <Link href="/">
           <Image
-            src="/logo.svg"
+            src={Logo}
             alt="Logo"
             width={48}
             height={48}
             sizes="(max-width: 768px) 32px, 48px"
-            priority={true}
+            quality={10}
           />
         </Link>
         <nav className="ml-auto flex items-center text-md font-medium space-x-6 text-gray-700">
