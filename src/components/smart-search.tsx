@@ -347,7 +347,7 @@ export function SmartSearch({
                     key={`suggestion-${index}`}
                     onClick={() => handleSuggestionClick(suggestion)}
                     className={cn(
-                      "relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden transition-colors focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 hover:bg-accent hover:text-accent-foreground",
+                      "relative flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden transition-colors focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 hover:bg-accent hover:text-accent-foreground",
                       selectedIndex === index &&
                         "bg-accent text-accent-foreground"
                     )}
@@ -380,7 +380,7 @@ export function SmartSearch({
                     key={`history-${index}`}
                     onClick={() => handleSuggestionClick(historyItem)}
                     className={cn(
-                      "relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden transition-colors focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 hover:bg-accent hover:text-accent-foreground",
+                      "relative flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden transition-colors focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 hover:bg-accent hover:text-accent-foreground",
                       selectedIndex === filteredSuggestions.length + index &&
                         "bg-accent text-accent-foreground"
                     )}

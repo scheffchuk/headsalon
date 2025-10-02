@@ -58,7 +58,7 @@ export function SearchInput({
               onClear();
               handleSuffixClick();
             }}
-            className="text-muted-foreground hover:text-foreground select-none"
+            className="text-muted-foreground hover:text-foreground"
             aria-label="Clear search"
           >
             <X className="h-4 w-4 pointer-events-none" />
