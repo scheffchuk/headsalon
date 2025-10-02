@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import CenterUnderline from "./ui/underline-center";
-import Logo from "@/assets/logo.svg";
+import Logo from "@/assets/logo.png";
 
 export default function Header() {
   return (
@@ -14,8 +14,6 @@ export default function Header() {
             alt="Logo"
             width={48}
             height={48}
-            sizes="(max-width: 768px) 32px, 48px"
-            quality={10}
           />
         </Link>
         <nav className="ml-auto flex items-center text-md font-medium space-x-6 text-gray-700">
