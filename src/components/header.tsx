@@ -14,7 +14,7 @@ export default function Header() {
             width={48}
             height={48}
             sizes="(max-width: 768px) 32px, 48px"
-            priority
+            priority={true}
           />
         </Link>
         <nav className="ml-auto flex items-center text-md font-medium space-x-6 text-gray-700">
