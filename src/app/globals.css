@@ -155,11 +155,6 @@
     }
   }
 
-  /* Smooth scrolling for anchor links */
-  html {
-    scroll-behavior: smooth;
-  }
-
   /* Performance optimizations */
   [data-animate] {
     will-change: transform, opacity;

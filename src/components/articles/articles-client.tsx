@@ -25,6 +25,16 @@ export function ArticlesClient() {
   const currentPage = Math.max(pageValue ?? 1, 1);
   const itemsPerPage = ARTICLES_PER_PAGE;
 
+  // Scroll to top when the page actually changes (not on first mount)
+  const lastPageRef = useRef<number>(currentPage);
+  useEffect(() => {
+    if (lastPageRef.current === currentPage) return;
+    lastPageRef.current = currentPage;
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }
+  }, [currentPage]);
+
   // Use a stable initial page size; avoid offset-style refetching
   const initialPageRef = useRef<number>(Math.max(pageValue ?? 1, 1));
   const { results, status, loadMore } = usePaginatedQuery(

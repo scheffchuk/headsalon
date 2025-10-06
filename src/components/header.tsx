@@ -14,6 +14,9 @@ export default function Header() {
             alt="Logo"
             width={48}
             height={48}
+            loading="lazy"
+            placeholder="blur"
+            className="rounded-full"
           />
         </Link>
         <nav className="ml-auto flex items-center text-md font-medium space-x-6 text-gray-700">
