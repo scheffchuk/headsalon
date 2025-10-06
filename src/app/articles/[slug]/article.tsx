@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
+import { usePreloadedQuery, Preloaded } from "convex/react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
@@ -13,18 +14,15 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
+import { api } from "../../../../convex/_generated/api";
 
 type ArticleProps = {
-  article: {
-    title: string;
-    date: string;
-    tags?: string[];
-    content?: string;
-  } | null;
+  preloadedArticle: Preloaded<typeof api.articles.getArticleBySlug>;
 };
 
-export function Article({ article }: ArticleProps) {
+export function Article({ preloadedArticle }: ArticleProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const article = usePreloadedQuery(preloadedArticle);
 
   // Format date for display
   const formatDate = (dateStr: string) => {
