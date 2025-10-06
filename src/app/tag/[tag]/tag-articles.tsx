@@ -1,19 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { usePreloadedQuery, Preloaded } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
 import TagArticleItem from "@/components/tag-article-item";
 import { useRef } from "react";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
 
 type TagArticlesProps = {
-  preloadedArticles: Preloaded<typeof api.articles.getArticlesByTag>;
+  articles: Array<{
+    _id: string;
+    title: string;
+    slug: string;
+    tags: string[];
+    date: string;
+  }>;
   tag: string;
 };
 
-export function TagArticles({ preloadedArticles, tag }: TagArticlesProps) {
-  const articlesByTag = usePreloadedQuery(preloadedArticles);
+export function TagArticles({ articles: articlesByTag, tag }: TagArticlesProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   return (

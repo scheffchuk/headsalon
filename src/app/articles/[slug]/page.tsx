@@ -1,4 +1,4 @@
-import { preloadQuery, fetchQuery } from "convex/nextjs";
+import { fetchQuery } from "convex/nextjs";
 import { unstable_ViewTransition as ViewTransition } from "react";
 import type { Metadata, ResolvingMetadata } from "next";
 import { api } from "../../../../convex/_generated/api";
@@ -48,13 +48,13 @@ export async function generateMetadata(
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
-  const preloadedArticle = await preloadQuery(api.articles.getArticleBySlug, {
+  const article = await fetchQuery(api.articles.getArticleBySlug, {
     slug: decodeURIComponent(slug),
   });
 
   return (
     <ViewTransition>
-      <Article preloadedArticle={preloadedArticle} />
+      <Article article={article} />
     </ViewTransition>
   );
 }
