@@ -24,6 +24,7 @@ export function ArticlesClient() {
 
   const currentPage = Math.max(pageValue ?? 1, 1);
   const itemsPerPage = ARTICLES_PER_PAGE;
+  const desiredItemCount = currentPage * itemsPerPage;
 
   // Scroll to top when the page actually changes (not on first mount)
   const lastPageRef = useRef<number>(currentPage);
@@ -35,50 +36,49 @@ export function ArticlesClient() {
     }
   }, [currentPage]);
 
-  // Use a stable initial page size; avoid offset-style refetching
-  const initialPageRef = useRef<number>(Math.max(pageValue ?? 1, 1));
   const { results, status, loadMore } = usePaginatedQuery(
     api.articles.getArticles,
     {},
-    { initialNumItems: initialPageRef.current * itemsPerPage }
+    { initialNumItems: desiredItemCount }
   );
 
   // When the page increases, request one more page worth of items.
   useEffect(() => {
-    const requiredCount = currentPage * itemsPerPage;
-    if (status === "CanLoadMore" && results.length < requiredCount) {
-      const remaining = requiredCount - results.length;
-      if (remaining > 0) {
-        loadMore(remaining);
-      }
+    if (results.length < desiredItemCount && status === "CanLoadMore") {
+      loadMore(itemsPerPage);
     }
-  }, [currentPage, itemsPerPage, loadMore, results.length, status]);
+  }, [desiredItemCount, itemsPerPage, loadMore, results.length, status]);
 
   // If we've exhausted results but the current page is beyond the last page,
   // clamp the page to the last available page to avoid empty slices.
-  useEffect(() => {
-    if (status !== "Exhausted") return;
-    if (currentPage <= 1) return;
-
-    const lastPage = Math.max(1, Math.ceil(results.length / itemsPerPage));
-    if (currentPage > lastPage) {
-      setPage(lastPage === 1 ? null : lastPage, { history: "replace" });
-    }
-  }, [currentPage, itemsPerPage, results.length, setPage, status]);
-
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
+  useEffect(() => {
+    if (status !== "Exhausted") {
+      return;
+    }
+    if (currentPage <= 1) {
+      return;
+    }
+    if (startIndex < results.length) {
+      return;
+    }
+
+    const lastPage = Math.max(1, Math.ceil(results.length / itemsPerPage));
+    setPage(lastPage === 1 ? null : lastPage, { history: "replace" });
+  }, [currentPage, itemsPerPage, results.length, setPage, startIndex, status]);
   const currentPageArticles = results.slice(startIndex, endIndex);
 
   const showInitialSkeleton = status === "LoadingFirstPage" && results.length === 0;
   const showPageSkeleton =
     (status === "LoadingMore" || isPending) &&
-    results.length < currentPage * itemsPerPage &&
+    results.length < desiredItemCount &&
     results.length >= itemsPerPage;
   const showEmpty = status === "Exhausted" && results.length === 0;
 
   const hasPreviousPage = currentPage > 1;
-  const hasNextPage = status === "CanLoadMore" || status === "LoadingMore";
+  const hasNextPage =
+    status === "CanLoadMore" || status === "LoadingMore" || results.length > endIndex;
 
   // Navigation function with loading state
   const navigateToPage = useCallback(
