@@ -170,12 +170,6 @@
     animation-duration: 0s !important;
   }
 
-  /* Optimize selection styling */
-  ::selection {
-    background-color: hsl(var(--primary) / 0.2);
-    color: hsl(var(--primary-foreground));
-  }
-
   /* Pause looping animations when not in view */
   @media (prefers-reduced-motion: reduce) {
     .animate-spin {
