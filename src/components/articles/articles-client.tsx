@@ -1,7 +1,7 @@
 "use client";
 
 import { PaginationSkeleton } from "@/components/ui/pagination-skeleton";
-import { useCallback, useEffect, useMemo, useRef, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useTransition } from "react";
 import { usePaginatedQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import {
@@ -26,50 +26,46 @@ export function ArticlesClient() {
   const itemsPerPage = ARTICLES_PER_PAGE;
   const desiredItemCount = currentPage * itemsPerPage;
 
-  // Scroll to top when the page actually changes (not on first mount)
-  const lastPageRef = useRef<number>(currentPage);
-  useEffect(() => {
-    if (lastPageRef.current === currentPage) return;
-    lastPageRef.current = currentPage;
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-    }
-  }, [currentPage]);
-
   const { results, status, loadMore } = usePaginatedQuery(
     api.articles.getArticles,
     {},
     { initialNumItems: desiredItemCount }
   );
 
-  // When the page increases, request one more page worth of items.
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+
   useEffect(() => {
     if (results.length < desiredItemCount && status === "CanLoadMore") {
       loadMore(itemsPerPage);
     }
   }, [desiredItemCount, itemsPerPage, loadMore, results.length, status]);
 
-  // If we've exhausted results but the current page is beyond the last page,
-  // clamp the page to the last available page to avoid empty slices.
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
   useEffect(() => {
     if (status !== "Exhausted") {
       return;
     }
+
     if (currentPage <= 1) {
       return;
     }
+
     if (startIndex < results.length) {
       return;
     }
 
     const lastPage = Math.max(1, Math.ceil(results.length / itemsPerPage));
+    if (lastPage === currentPage) {
+      return;
+    }
+
     setPage(lastPage === 1 ? null : lastPage, { history: "replace" });
   }, [currentPage, itemsPerPage, results.length, setPage, startIndex, status]);
+
   const currentPageArticles = results.slice(startIndex, endIndex);
 
-  const showInitialSkeleton = status === "LoadingFirstPage" && results.length === 0;
+  const showInitialSkeleton =
+    status === "LoadingFirstPage" && results.length === 0;
   const showPageSkeleton =
     (status === "LoadingMore" || isPending) &&
     results.length < desiredItemCount &&
@@ -78,13 +74,18 @@ export function ArticlesClient() {
 
   const hasPreviousPage = currentPage > 1;
   const hasNextPage =
-    status === "CanLoadMore" || status === "LoadingMore" || results.length > endIndex;
+    status === "CanLoadMore" ||
+    status === "LoadingMore" ||
+    results.length > endIndex;
 
   // Navigation function with loading state
   const navigateToPage = useCallback(
     (page: number) => {
       const nextPage = Math.max(page, 1);
-      if (nextPage === currentPage) return;
+      if (nextPage === currentPage) {
+        return;
+      }
+
       startTransition(() => {
         setPage(nextPage === 1 ? null : nextPage, { history: "replace" });
       });
