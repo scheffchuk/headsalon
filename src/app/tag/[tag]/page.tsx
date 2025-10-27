@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ViewTransition } from "react";
 import type { Metadata, ResolvingMetadata } from "next";
 import { preloadQuery, fetchQuery } from "convex/nextjs";
@@ -39,7 +40,25 @@ export async function generateMetadata(
   };
 }
 
-export default async function TagPage({ params }: TagPageProps) {
+export default function TagPage({ params }: TagPageProps) {
+  return (
+    <ViewTransition>
+      <Suspense
+        fallback={
+          <div className="mx-auto py-8">
+            <div className="text-center py-16">
+              <p className="text-gray-600">Loading articles...</p>
+            </div>
+          </div>
+        }
+      >
+        <TagPageContent params={params} />
+      </Suspense>
+    </ViewTransition>
+  );
+}
+
+async function TagPageContent({ params }: TagPageProps) {
   const { tag } = await params;
   const decodedTag = decodeURIComponent(tag);
 
@@ -47,9 +66,5 @@ export default async function TagPage({ params }: TagPageProps) {
     tag: decodedTag,
   });
 
-  return (
-    <ViewTransition>
-      <TagArticles preloadedArticles={preloadedArticles} tag={decodedTag} />
-    </ViewTransition>
-  );
+  return <TagArticles preloadedArticles={preloadedArticles} tag={decodedTag} />;
 }

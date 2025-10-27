@@ -1,11 +1,26 @@
 import { Suspense } from "react";
-import { ArticlesClient } from "../components/articles/articles-client";
+import { Articles } from "../components/articles/articles-client";
 import { ArticlesSkeleton } from "@/components/articles/articles-skeleton";
 
-export default function HomePage() {
+type PageProps = {
+  searchParams: Promise<{ page?: string }>;
+};
+
+export default function HomePage({ searchParams }: PageProps) {
   return (
     <Suspense fallback={<ArticlesSkeleton />}>
-      <ArticlesClient />
+      <ArticlesClient searchParams={searchParams} />
     </Suspense>
   );
+}
+
+async function ArticlesClient({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const params = await searchParams;
+  const page = params.page ? parseInt(params.page, 10) : 1;
+
+  return <Articles page={page} />;
 }

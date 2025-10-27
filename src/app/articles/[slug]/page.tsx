@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { preloadQuery, fetchQuery } from "convex/nextjs";
 import { ViewTransition } from "react";
 import type { Metadata, ResolvingMetadata } from "next";
@@ -46,15 +47,29 @@ export async function generateMetadata(
   };
 }
 
-export default async function ArticlePage({ params }: ArticlePageProps) {
+export default function ArticlePage({ params }: ArticlePageProps) {
+  return (
+    <ViewTransition>
+      <Suspense
+        fallback={
+          <div className="mx-auto py-8">
+            <div className="text-center py-16">
+              <p className="text-gray-600">Loading article...</p>
+            </div>
+          </div>
+        }
+      >
+        <ArticleContent params={params} />
+      </Suspense>
+    </ViewTransition>
+  );
+}
+
+async function ArticleContent({ params }: ArticlePageProps) {
   const { slug } = await params;
   const preloadedArticle = await preloadQuery(api.articles.getArticleBySlug, {
     slug: decodeURIComponent(slug),
   });
 
-  return (
-    <ViewTransition>
-      <Article preloadedArticle={preloadedArticle} />
-    </ViewTransition>
-  );
+  return <Article preloadedArticle={preloadedArticle} />;
 }
