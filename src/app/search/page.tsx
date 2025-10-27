@@ -1,4 +1,4 @@
-import { Suspense, unstable_ViewTransition as ViewTransition } from "react";
+import { Suspense, ViewTransition } from "react";
 import SearchPageContent from "./search";
 
 export default function Search() {

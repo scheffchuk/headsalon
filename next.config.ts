@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    viewTransition: true,
-  },
+  // ViewTransition is now stable in Next.js 16
 };
 
 module.exports = nextConfig;

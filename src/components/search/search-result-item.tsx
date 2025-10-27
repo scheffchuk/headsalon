@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { unstable_ViewTransition as ViewTransition } from "react";
+import { ViewTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { SearchResult } from "@/types/search";
 

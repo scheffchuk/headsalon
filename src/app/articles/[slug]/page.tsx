@@ -1,5 +1,5 @@
 import { preloadQuery, fetchQuery } from "convex/nextjs";
-import { unstable_ViewTransition as ViewTransition } from "react";
+import { ViewTransition } from "react";
 import type { Metadata, ResolvingMetadata } from "next";
 import { api } from "../../../../convex/_generated/api";
 import { Article } from "./article";
