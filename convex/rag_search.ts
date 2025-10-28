@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+"use node";
+
 import { v } from "convex/values";
 import { action, ActionCtx } from "./_generated/server";
 import { RAG } from "@convex-dev/rag";
@@ -33,6 +34,29 @@ export type SearchResult = {
   };
 };
 
+// Validators for SearchResult
+const RelevantChunkValidator = v.object({
+  content: v.string(),
+  score: v.optional(v.number()),
+});
+
+const SearchResultValidator = v.object({
+  _id: v.string(),
+  articleId: v.string(),
+  title: v.string(),
+  slug: v.string(),
+  date: v.string(),
+  tags: v.array(v.string()),
+  score: v.optional(v.number()),
+  relevantChunks: v.optional(v.array(RelevantChunkValidator)),
+  _meta: v.optional(
+    v.object({
+      searchType: v.string(),
+      semanticScore: v.number(),
+    })
+  ),
+});
+
 const rag = new RAG<ArticleFilters>(components.rag, {
   textEmbeddingModel: openai.embedding("text-embedding-3-large"),
   embeddingDimension: 3072,
@@ -40,6 +64,32 @@ const rag = new RAG<ArticleFilters>(components.rag, {
 });
 
 const ARTICLES_NAMESPACE = "articles";
+
+// Type-safe RAG search result types
+interface RAGSearchResult {
+  results: Array<{
+    entryId: string;
+    score: number;
+    content?: Array<{ text: string }>;
+  }>;
+  entries: Array<{
+    entryId: string;
+    key: string;
+    filterValues?: Array<{ name: string; value: string }>;
+  }>;
+}
+
+interface RAGEntry {
+  entryId: string;
+  key: string;
+  filterValues?: Array<{ name: string; value: string }>;
+}
+
+interface RAGResult {
+  entryId: string;
+  score: number;
+  content?: Array<{ text: string }>;
+}
 
 function preprocessChineseQuery(query: string): string {
   let processed = query.trim().replace(/\s+/g, " ");
@@ -60,7 +110,7 @@ function preprocessChineseQuery(query: string): string {
 }
 
 function transformSearchResults(
-  searchResult: any,
+  searchResult: RAGSearchResult,
   limit: number
 ): SearchResult[] {
   const { results, entries } = searchResult;
@@ -70,10 +120,13 @@ function transformSearchResults(
   }
 
   // Deduplicate by article key and take highest scoring results
-  const articleMap = new Map<string, any>();
+  const articleMap = new Map<
+    string,
+    { result: RAGResult; entry: RAGEntry }
+  >();
 
-  results.forEach((result: any) => {
-    const entry = entries.find((e: any) => e.entryId === result.entryId);
+  results.forEach((result: RAGResult) => {
+    const entry = entries.find((e: RAGEntry) => e.entryId === result.entryId);
     if (!entry) return;
 
     const articleId = entry.key || entry.entryId;
@@ -90,7 +143,7 @@ function transformSearchResults(
     .map(({ result, entry }) => {
       // Extract filter values
       const filters = new Map(
-        entry.filterValues?.map((f: any) => [f.name, f.value]) || []
+        entry.filterValues?.map((f) => [f.name, f.value]) || []
       );
 
       // Process tags
@@ -103,7 +156,7 @@ function transformSearchResults(
 
       // Create relevant chunks (max 3 for semantic search)
       const relevantChunks =
-        result.content?.slice(0, 3).map((chunk: any) => ({
+        result.content?.slice(0, 3).map((chunk) => ({
           content: chunk.text || "",
           score: result.score,
         })) || [];
@@ -135,6 +188,10 @@ export const addArticleToRAG = action({
     tags: v.array(v.string()),
     date: v.string(),
   },
+  returns: v.object({
+    success: v.boolean(),
+    articleId: v.string(),
+  }),
   handler: async (
     ctx: ActionCtx,
     { articleId, title, slug, content, tags, date }
@@ -176,6 +233,7 @@ export const searchArticlesRAG = action({
     tagFilter: v.optional(v.string()),
     similarityThreshold: v.optional(v.number()),
   },
+  returns: v.array(SearchResultValidator),
   handler: async (
     ctx: ActionCtx,
     { query, limit = 20, tagFilter, similarityThreshold = 0.3 }
@@ -186,7 +244,7 @@ export const searchArticlesRAG = action({
       const processedQuery = preprocessChineseQuery(query);
 
       // Use official RAG search API with performance optimizations
-      const searchResult = await rag.search(ctx, {
+      const searchResult = (await rag.search(ctx, {
         namespace: ARTICLES_NAMESPACE,
         query: processedQuery,
         limit: Math.min(limit * 2, 100),
@@ -195,7 +253,7 @@ export const searchArticlesRAG = action({
         ...(tagFilter && {
           filterValues: [{ name: "tag", value: tagFilter }],
         }),
-      });
+      })) as RAGSearchResult;
 
       const transformedResults = transformSearchResults(searchResult, limit);
 
@@ -213,21 +271,25 @@ export const searchArticlesRAG = action({
 
 export const getAvailableTags = action({
   args: {},
+  returns: v.object({
+    tags: v.array(v.string()),
+    count: v.number(),
+  }),
   handler: async (ctx: ActionCtx) => {
     try {
-      const searchResult = await rag.search(ctx, {
+      const searchResult = (await rag.search(ctx, {
         namespace: ARTICLES_NAMESPACE,
         query: "文章",
         limit: 3000,
         vectorScoreThreshold: 0.05,
-      });
+      })) as RAGSearchResult;
 
       const allTags = new Set<string>();
 
       if (searchResult.entries) {
-        searchResult.entries.forEach((entry: any) => {
+        searchResult.entries.forEach((entry: RAGEntry) => {
           const tagValue = entry.filterValues?.find(
-            (f: any) => f.name === "tag"
+            (f) => f.name === "tag"
           )?.value;
           if (typeof tagValue === "string") {
             tagValue.split("|").forEach((tag) => {

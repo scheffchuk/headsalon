@@ -8,6 +8,19 @@ export const getArticles = query({
   args: {
     paginationOpts: paginationOptsValidator,
   },
+  returns: v.object({
+    page: v.array(
+      v.object({
+        _id: v.id("articles"),
+        title: v.string(),
+        slug: v.string(),
+        date: v.string(),
+        tags: v.array(v.string()),
+      })
+    ),
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+  }),
   handler: async (ctx, args) => {
     const result = await ctx.db
       .query("articles")
@@ -32,6 +45,16 @@ export const getArticlesByTag = query({
   args: {
     tag: v.string(),
   },
+  returns: v.array(
+    v.object({
+      _id: v.id("articles"),
+      title: v.string(),
+      slug: v.string(),
+      excerpt: v.optional(v.string()),
+      tags: v.array(v.string()),
+      date: v.string(),
+    })
+  ),
   handler: async (ctx, { tag }) => {
     if (!tag.trim()) {
       return [];
@@ -39,7 +62,7 @@ export const getArticlesByTag = query({
 
     const tagEntries = await ctx.db
       .query("articleTags")
-      .withIndex("by_tag_date", (q) => q.eq("tag", tag))
+      .withIndex("by_tag_and_articleDate", (q) => q.eq("tag", tag))
       .order("desc")
       .collect();
 
@@ -65,6 +88,19 @@ export const getArticlesByTag = query({
 // Get article by slug
 export const getArticleBySlug = query({
   args: { slug: v.string() },
+  returns: v.union(
+    v.object({
+      _id: v.id("articles"),
+      _creationTime: v.number(),
+      title: v.string(),
+      slug: v.string(),
+      content: v.string(),
+      excerpt: v.optional(v.string()),
+      tags: v.array(v.string()),
+      date: v.string(),
+    }),
+    v.null()
+  ),
   handler: async (ctx, { slug }) => {
     if (!slug.trim()) {
       return null;
@@ -73,13 +109,26 @@ export const getArticleBySlug = query({
     return await ctx.db
       .query("articles")
       .withIndex("by_slug", (q) => q.eq("slug", slug))
-      .first();
+      .unique();
   },
 });
 
 // Internal query to get article by ID - used by embedding generation
 export const getArticleById = internalQuery({
   args: { id: v.id("articles") },
+  returns: v.union(
+    v.object({
+      _id: v.id("articles"),
+      _creationTime: v.number(),
+      title: v.string(),
+      slug: v.string(),
+      content: v.string(),
+      excerpt: v.optional(v.string()),
+      tags: v.array(v.string()),
+      date: v.string(),
+    }),
+    v.null()
+  ),
   handler: async (ctx, { id }) => {
     return await ctx.db.get(id);
   },
@@ -95,6 +144,7 @@ export const createArticle = mutation({
     tags: v.array(v.string()),
     date: v.string(),
   },
+  returns: v.id("articles"),
   handler: async (ctx, args) => {
     // Create the article in the database
     const articleId = await ctx.db.insert("articles", args);
@@ -128,6 +178,7 @@ export const updateArticle = mutation({
     tags: v.optional(v.array(v.string())),
     date: v.optional(v.string()),
   },
+  returns: v.id("articles"),
   handler: async (ctx, { id, ...updates }) => {
     // Get current article
     const currentArticle = await ctx.db.get(id);
@@ -143,7 +194,7 @@ export const updateArticle = mutation({
       // Remove old tag entries
       const oldTagEntries = await ctx.db
         .query("articleTags")
-        .withIndex("by_article", (q) => q.eq("articleId", id))
+        .withIndex("by_articleId", (q) => q.eq("articleId", id))
         .collect();
 
       for (const entry of oldTagEntries) {
@@ -181,11 +232,12 @@ export const deleteArticle = mutation({
   args: {
     id: v.id("articles"),
   },
+  returns: v.object({ success: v.boolean() }),
   handler: async (ctx, { id }) => {
     // Remove from articleTags table
     const tagEntries = await ctx.db
       .query("articleTags")
-      .withIndex("by_article", (q) => q.eq("articleId", id))
+      .withIndex("by_articleId", (q) => q.eq("articleId", id))
       .collect();
 
     for (const entry of tagEntries) {

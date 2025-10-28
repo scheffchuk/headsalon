@@ -20,8 +20,8 @@ const schema = defineSchema({
     tag: v.string(),
     articleDate: v.string(),
   })
-    .index("by_tag_date", ["tag", "articleDate"])
-    .index("by_article", ["articleId"]),
+    .index("by_tag_and_articleDate", ["tag", "articleDate"])
+    .index("by_articleId", ["articleId"]),
 });
 
 export default schema;

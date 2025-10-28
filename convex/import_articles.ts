@@ -1,3 +1,5 @@
+"use node";
+
 import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { RAG } from "@convex-dev/rag";
@@ -32,6 +34,14 @@ export const importArticlesBatch = action({
     articles: v.array(ArticleValidator),
     batchIndex: v.optional(v.number()),
   },
+  returns: v.object({
+    batchIndex: v.number(),
+    totalArticles: v.number(),
+    imported: v.number(),
+    skipped: v.number(),
+    errors: v.number(),
+    success: v.boolean(),
+  }),
   handler: async (ctx, { articles, batchIndex = 0 }) => {
     console.log(
       `Starting import batch ${batchIndex} with ${articles.length} articles`
@@ -120,6 +130,14 @@ export const importArticlesSimple = action({
   args: {
     articles: v.array(ArticleValidator),
   },
+  returns: v.object({
+    batchIndex: v.number(),
+    totalArticles: v.number(),
+    imported: v.number(),
+    skipped: v.number(),
+    errors: v.number(),
+    success: v.boolean(),
+  }),
   handler: async (ctx, { articles }) => {
     // Process articles directly without self-reference
     console.log(`Starting simple import with ${articles.length} articles`);

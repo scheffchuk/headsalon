@@ -1,8 +1,10 @@
+import { v } from "convex/values";
 import { internalMutation } from "./_generated/server";
 
 // Migration to populate articleTags table from existing articles
 export const populateArticleTags = internalMutation({
   args: {},
+  returns: v.object({ processedArticles: v.number() }),
   handler: async (ctx) => {
     console.log("Starting articleTags migration...");
 
@@ -13,7 +15,7 @@ export const populateArticleTags = internalMutation({
       // Check if tags already exist for this article
       const existingTags = await ctx.db
         .query("articleTags")
-        .withIndex("by_article", (q) => q.eq("articleId", article._id))
+        .withIndex("by_articleId", (q) => q.eq("articleId", article._id))
         .collect();
 
       if (existingTags.length === 0) {
