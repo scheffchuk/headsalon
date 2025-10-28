@@ -1,49 +1,25 @@
-"use cache";
+"use client";
 
-import { cacheLife, cacheTag } from "next/cache";
-import { fetchQuery } from "convex/nextjs";
+import { usePaginatedQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { ArticleCard } from "../article/article-card";
+import { ArticlesSkeleton } from "./articles-skeleton";
+import { Button } from "@/components/ui/button";
 
-const ARTICLES_PER_PAGE = 10;
+const PAGE_SIZE = 10;
 
-type ArticlesClientProps = {
-  page?: number;
-};
+export function Articles() {
+  const { results, status, loadMore } = usePaginatedQuery(
+    api.articles.getArticles,
+    {},
+    { initialNumItems: PAGE_SIZE }
+  );
 
-export async function Articles({ page = 1 }: ArticlesClientProps) {
-  cacheLife("days");
-  cacheTag("articles");
+  if (status === "LoadingFirstPage") {
+    return <ArticlesSkeleton />;
+  }
 
-  const currentPage = Math.max(page, 1);
-  const itemsPerPage = ARTICLES_PER_PAGE;
-  const desiredItemCount = currentPage * itemsPerPage;
-
-  const result = await fetchQuery(api.articles.getArticles, {
-    paginationOpts: { cursor: null, numItems: desiredItemCount },
-  });
-
-  const results = result.page;
-  const isDone = result.isDone;
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-
-  const currentPageArticles = results.slice(startIndex, endIndex);
-
-  const showEmpty = isDone && results.length === 0;
-
-  const hasPreviousPage = currentPage > 1;
-  const hasNextPage = !isDone || results.length > endIndex;
-
-  if (showEmpty) {
+  if (!results?.length) {
     return (
       <div className="mx-auto py-8 mt-16">
         <div className="text-center py-16">
@@ -56,32 +32,20 @@ export async function Articles({ page = 1 }: ArticlesClientProps) {
   return (
     <div className="mx-auto py-8 mt-16">
       <div className="flex flex-col space-y-6">
-        {currentPageArticles.map((article) => (
+        {results.map((article) => (
           <ArticleCard article={article} key={article._id} />
         ))}
       </div>
 
-      {(hasPreviousPage || hasNextPage) && (
-        <div className="mt-8">
-          <Pagination>
-            <PaginationContent>
-              {hasPreviousPage && (
-                <PaginationItem>
-                  <PaginationPrevious
-                    href={currentPage > 2 ? `?page=${currentPage - 1}` : "/"}
-                  />
-                </PaginationItem>
-              )}
-
-              {hasNextPage && (
-                <PaginationItem>
-                  <PaginationNext href={`?page=${currentPage + 1}`} />
-                </PaginationItem>
-              )}
-            </PaginationContent>
-          </Pagination>
-        </div>
-      )}
+      <div className="mt-8 flex justify-center">
+        <Button
+          onClick={() => loadMore(PAGE_SIZE)}
+          disabled={status !== "CanLoadMore"}
+          variant="ghost"
+        >
+          {status === "LoadingMore" ? "Loading…" : status === "Exhausted" ? "No more" : "Load more"}
+        </Button>
+      </div>
     </div>
   );
 }
