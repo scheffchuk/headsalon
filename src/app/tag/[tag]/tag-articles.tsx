@@ -4,8 +4,6 @@ import Link from "next/link";
 import { usePreloadedQuery, Preloaded } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import TagArticleItem from "@/components/tag-article-item";
-import { useRef } from "react";
-import { ScrollProgress } from "@/components/ui/scroll-progress";
 
 type TagArticlesProps = {
   preloadedArticles: Preloaded<typeof api.articles.getArticlesByTag>;
@@ -13,20 +11,10 @@ type TagArticlesProps = {
 };
 
 export function TagArticles({ preloadedArticles, tag }: TagArticlesProps) {
-  const ref = useRef<HTMLDivElement>(null);
   const articlesByTag = usePreloadedQuery(preloadedArticles);
 
   return (
-    <div className="mx-auto mt-16 pb-8" ref={ref}>
-      <div className="pointer-events-none fixed left-0 top-0 w-full z-50">
-        <ScrollProgress className="absolute bg-[#3399FF]" />
-      </div>
-      {/* Header */}
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">标签：{tag}</h1>
-        <p className="text-gray-600">找到 {articlesByTag.length} 篇相关文章</p>
-      </header>
-
+    <div>
       {/* Articles List */}
       {!articlesByTag.length ? (
         <div className="text-center py-16">
