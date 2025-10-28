@@ -27,16 +27,6 @@ export function TagArticles({ preloadedArticles, tag }: TagArticlesProps) {
           ))}
         </div>
       )}
-
-      {/* Back link */}
-      <div className="mt-12 text-center">
-        <Link
-          href="/"
-          className="text-gray-700 hover:text-blue-500 font-medium"
-        >
-          ← 返回首页
-        </Link>
-      </div>
     </div>
   );
 }

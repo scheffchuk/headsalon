@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { usePreloadedQuery, Preloaded } from "convex/react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -80,16 +80,6 @@ export function Article({ preloadedArticle }: ArticleProps) {
           )}
         </CardContent>
       </Card>
-
-      {/* Back to Home Button */}
-      <div className="mt-8 text-center">
-        <Link
-          href="/"
-          className="inline-flex items-center text-primary hover:text-primary/80 font-medium transition-colors"
-        >
-          ← 返回首页
-        </Link>
-      </div>
     </div>
   );
 }

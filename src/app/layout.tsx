@@ -4,7 +4,6 @@ import "./globals.css";
 import { ConvexClientProvider } from "../providers/convex-client-provider";
 import { Toaster } from "@/components/ui/sonner";
 import Header from "@/components/header";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

@@ -5,6 +5,7 @@ import { preloadQuery, fetchQuery } from "convex/nextjs";
 import { api } from "../../../../convex/_generated/api";
 import { TagArticles } from "./tag-articles";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
+import { ArticlesSkeleton } from "@/components/articles/articles-skeleton";
 
 type TagPageProps = {
   params: Promise<{ tag: string }>;
@@ -45,10 +46,6 @@ export default function TagPage({ params }: TagPageProps) {
   return (
     <ViewTransition>
       <div className="mx-auto mt-16 pb-8">
-        <div className="pointer-events-none fixed left-0 top-0 w-full z-50">
-          <ScrollProgress className="absolute bg-[#3399FF]" />
-        </div>
-        
         {/* Header */}
         <header className="mb-8">
           <Suspense
@@ -77,9 +74,7 @@ export default function TagPage({ params }: TagPageProps) {
         {/* Articles List */}
         <Suspense
           fallback={
-            <div className="text-center py-16">
-              <p className="text-gray-600">Loading articles...</p>
-            </div>
+            <ArticlesSkeleton />
           }
         >
           <TagPageContent params={params} />
