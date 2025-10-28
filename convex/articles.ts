@@ -20,6 +20,8 @@ export const getArticles = query({
     ),
     isDone: v.boolean(),
     continueCursor: v.union(v.string(), v.null()),
+    pageStatus: v.optional(v.union(v.literal("SplitRecommended"), v.literal("SplitRequired"), v.null())),
+    splitCursor: v.optional(v.union(v.string(), v.null())),
   }),
   handler: async (ctx, args) => {
     const result = await ctx.db
