@@ -4,6 +4,7 @@ import { ViewTransition } from "react";
 import type { Metadata, ResolvingMetadata } from "next";
 import { api } from "../../../../convex/_generated/api";
 import { Article } from "./article";
+import { ArticleSkeleton } from "@/components/article/article-skeleton";
 
 type ArticlePageProps = {
   params: Promise<{ slug: string }>;
@@ -50,15 +51,7 @@ export async function generateMetadata(
 export default function ArticlePage({ params }: ArticlePageProps) {
   return (
     <ViewTransition>
-      <Suspense
-        fallback={
-          <div className="mx-auto py-8">
-            <div className="text-center py-16">
-              <p className="text-gray-600">Loading article...</p>
-            </div>
-          </div>
-        }
-      >
+      <Suspense fallback={<ArticleSkeleton />}>
         <ArticleContent params={params} />
       </Suspense>
     </ViewTransition>

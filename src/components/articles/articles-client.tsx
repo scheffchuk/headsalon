@@ -19,16 +19,6 @@ export function Articles() {
     return <ArticlesSkeleton />;
   }
 
-  if (!results?.length) {
-    return (
-      <div className="mx-auto py-8 mt-16">
-        <div className="text-center py-16">
-          <p className="text-gray-600 text-lg">Maybe comeback later</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto py-8 mt-16">
       <div className="flex flex-col space-y-6">
