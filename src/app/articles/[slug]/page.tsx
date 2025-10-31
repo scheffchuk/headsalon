@@ -1,9 +1,10 @@
 import { Suspense } from "react";
-import { preloadQuery, fetchQuery } from "convex/nextjs";
+import { fetchQuery } from "convex/nextjs";
 import { ViewTransition } from "react";
 import type { Metadata, ResolvingMetadata } from "next";
 import { api } from "../../../../convex/_generated/api";
 import { Article } from "./article";
+import { ArticleWithScrollProgress } from "./article-with-scroll-progress";
 import { ArticleSkeleton } from "@/components/article/article-skeleton";
 
 type ArticlePageProps = {
@@ -60,9 +61,13 @@ export default function ArticlePage({ params }: ArticlePageProps) {
 
 async function ArticleContent({ params }: ArticlePageProps) {
   const { slug } = await params;
-  const preloadedArticle = await preloadQuery(api.articles.getArticleBySlug, {
+  const article = await fetchQuery(api.articles.getArticleBySlug, {
     slug: decodeURIComponent(slug),
   });
 
-  return <Article preloadedArticle={preloadedArticle} />;
+  return (
+    <ArticleWithScrollProgress>
+      <Article article={article} />
+    </ArticleWithScrollProgress>
+  );
 }

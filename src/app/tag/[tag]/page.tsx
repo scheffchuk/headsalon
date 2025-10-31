@@ -1,10 +1,9 @@
 import { Suspense } from "react";
 import { ViewTransition } from "react";
 import type { Metadata, ResolvingMetadata } from "next";
-import { preloadQuery, fetchQuery } from "convex/nextjs";
+import { fetchQuery } from "convex/nextjs";
 import { api } from "../../../../convex/_generated/api";
 import { TagArticles } from "./tag-articles";
-import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { ArticlesSkeleton } from "@/components/articles/articles-skeleton";
 
 type TagPageProps = {
@@ -104,9 +103,9 @@ async function TagPageContent({ params }: TagPageProps) {
   const { tag } = await params;
   const decodedTag = decodeURIComponent(tag);
 
-  const preloadedArticles = await preloadQuery(api.articles.getArticlesByTag, {
+  const articles = await fetchQuery(api.articles.getArticlesByTag, {
     tag: decodedTag,
   });
 
-  return <TagArticles preloadedArticles={preloadedArticles} tag={decodedTag} />;
+  return <TagArticles articles={articles} tag={decodedTag} />;
 }
