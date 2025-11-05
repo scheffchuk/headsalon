@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatDate } from "@/lib/utils";
 
 type Article = {
   _id: string;
@@ -14,16 +15,6 @@ type TagArticleItemProps = {
 };
 
 export default function TagArticleItem({ article, tag }: TagArticleItemProps) {
-  // Format date for display
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("zh-CN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
   return (
     <article className="gap-8 py-4">
       <header className="mb-3">

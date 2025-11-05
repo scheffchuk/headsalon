@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
 import CenterUnderline from "./ui/underline-center";
 import Logo from "@/assets/logo.png";
 
@@ -25,26 +24,26 @@ export default function Header() {
             className="hover:text-[#3399ff] transition-colors duration-200"
             aria-label="搜索"
           >
-            <CenterUnderline>Search</CenterUnderline>
+            <CenterUnderline>搜索</CenterUnderline>
           </Link>
           <Link
             href="/flashing"
             className="hover:text-[#3399ff] transition-colors duration-200"
             aria-label="刷机包"
           >
-            <CenterUnderline>Flashing</CenterUnderline>
+            <CenterUnderline>刷机包</CenterUnderline>
           </Link>
           <Link
             href="/about"
             className="hover:text-[#3399ff] transition-colors duration-200"
           >
-            <CenterUnderline>About</CenterUnderline>
+            <CenterUnderline>关于</CenterUnderline>
           </Link>
           <Link
             href="/discuss"
             className="hover:text-[#3399ff] transition-colors duration-200"
           >
-            <CenterUnderline>Discuss</CenterUnderline>
+            <CenterUnderline>讨论</CenterUnderline>
           </Link>
         </nav>
       </div>

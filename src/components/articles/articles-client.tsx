@@ -5,6 +5,7 @@ import { api } from "../../../convex/_generated/api";
 import { ArticleCard } from "../article/article-card";
 import { ArticlesSkeleton } from "./articles-skeleton";
 import { Button } from "@/components/ui/button";
+import { StaggeredMotion } from "../ui/staggered-motion";
 
 const PAGE_SIZE = 10;
 
@@ -22,8 +23,17 @@ export function Articles() {
   return (
     <div className="mx-auto py-8 mt-16">
       <div className="flex flex-col space-y-6">
-        {results.map((article) => (
-          <ArticleCard article={article} key={article._id} />
+        {results.map((article, index) => (
+          <StaggeredMotion
+            index={index}
+            key={article._id}
+            delay={0.05}
+            maxDelay={0.2}
+            duration={0.2}
+            initialY={20}
+          >
+            <ArticleCard article={article} key={article._id} />
+          </StaggeredMotion>
         ))}
       </div>
 
@@ -33,7 +43,11 @@ export function Articles() {
           disabled={status !== "CanLoadMore"}
           variant="ghost"
         >
-          {status === "LoadingMore" ? "Loading…" : status === "Exhausted" ? "No more" : "Load more"}
+          {status === "LoadingMore"
+            ? "Loading…"
+            : status === "Exhausted"
+            ? "No more"
+            : "Load more"}
         </Button>
       </div>
     </div>

@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/lib/utils";
 
 type Article = {
   _id: string;
@@ -25,17 +26,7 @@ type ArticleProps = {
 };
 
 export function Article({ article }: ArticleProps) {
-  // Format date for display
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("zh-CN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  if (article === null) {
+  if (!article) {
     notFound();
   }
 
@@ -68,13 +59,7 @@ export function Article({ article }: ArticleProps) {
       </CardHeader>
 
       <CardContent className="wrap-normal">
-        {article.content ? (
-          <MarkdownRenderer content={article.content} />
-        ) : (
-          <div className="prose prose-lg max-w-none">
-            <p className="text-muted-foreground">Loading...</p>
-          </div>
-        )}
+        <MarkdownRenderer content={article.content} />
       </CardContent>
     </Card>
   );

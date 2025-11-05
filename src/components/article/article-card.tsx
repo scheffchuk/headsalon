@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ViewTransition } from "react";
 import { Badge } from "../ui/badge";
-
+import { formatDate } from "@/lib/utils";
 
 type Article = {
   _id: string;
@@ -16,15 +16,6 @@ type ArticleProps = {
 };
 
 export function ArticleCard({ article }: ArticleProps) {
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("zh-CN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
   return (
     <article className="py-4">
       <ViewTransition name={`title-${article.slug}`}>
