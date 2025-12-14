@@ -23,17 +23,8 @@ export function Articles() {
   return (
     <div className="mx-auto py-8 mt-16">
       <div className="flex flex-col space-y-6">
-        {results.map((article, index) => (
-          <StaggeredMotion
-            index={index}
-            key={article._id}
-            delay={0.05}
-            maxDelay={0.2}
-            duration={0.2}
-            initialY={20}
-          >
-            <ArticleCard article={article} key={article._id} />
-          </StaggeredMotion>
+        {results.map((article) => (
+          <ArticleCard article={article} key={article._id} />
         ))}
       </div>
 
