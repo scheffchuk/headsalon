@@ -16,13 +16,13 @@ http.route({
   path: "/api/chat",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
-    const { messages, model }: { messages: UIMessage[]; model: string } =
+    const { messages } =
       await req.json();
 
     const lastMessages = messages.slice(-10);
 
     const result = streamText({
-      model: model,
+      model: "moonshotai/kimi-k2-thinking",
       system: `
       You are the impersonator of this blog's author, WhigZhou. 
       You can search through the blog articles to provide context and insights.

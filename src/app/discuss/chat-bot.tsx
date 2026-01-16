@@ -8,15 +8,9 @@ import {
 import { Message, MessageContent } from "@/components/ai-elements/message";
 import {
   PromptInput,
-  PromptInputModelSelect,
-  PromptInputModelSelectContent,
-  PromptInputModelSelectItem,
-  PromptInputModelSelectTrigger,
-  PromptInputModelSelectValue,
   PromptInputSubmit,
   PromptInputTextarea,
-  PromptInputToolbar,
-  PromptInputTools,
+  PromptInputToolbar
 } from "@/components/ai-elements/prompt-input";
 import { useState } from "react";
 import { useChat } from "@ai-sdk/react";
@@ -36,29 +30,6 @@ import {
 } from "@/components/ai-elements/reasoning";
 import { Loader } from "@/components/ai-elements/loader";
 
-const models = [
-  {
-    name: "GPT-5",
-    value: "openai/gpt-5",
-  },
-  {
-    name: "GPT-5 mini",
-    value: "openai/gpt-5-mini",
-  },
-  {
-    name: "Gemini 2.5 Pro",
-    value: "google/gemini-2.5-pro",
-  },
-  {
-    name: "Gemini 2.5 Flash",
-    value: "google/gemini-2.5-flash",
-  },
-  {
-    name: "Grok 4",
-    value: "xai/grok-4",
-  },
-];
-
 const convexSiteUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.replace(
   /.cloud$/,
   ".site"
@@ -66,7 +37,6 @@ const convexSiteUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.replace(
 
 export default function ChatBot() {
   const [input, setInput] = useState("");
-  const [model, setModel] = useState<string>(models[0].value);
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: `${convexSiteUrl}/api/chat`,
@@ -78,18 +48,13 @@ export default function ChatBot() {
     if (input.trim()) {
       sendMessage(
         { text: input },
-        {
-          body: {
-            model: model,
-          },
-        }
       );
       setInput("");
     }
   };
 
   return (
-    <div className="relative h-[calc(100vh-10rem)] mt-3">
+    <div className="relative h-[calc(100vh-8rem)] mt-3">
       <div className="flex flex-col h-full">
         <Conversation className="h-full">
           <ConversationContent>
@@ -135,6 +100,7 @@ export default function ChatBot() {
                               key={`${message.id}-${i}`}
                               className="w-full"
                               isStreaming={status === "streaming"}
+                              defaultOpen={false}
                             >
                               <ReasoningTrigger />
                               <ReasoningContent>{part.text}</ReasoningContent>
@@ -153,38 +119,17 @@ export default function ChatBot() {
           <ConversationScrollButton />
         </Conversation>
 
-        <PromptInput onSubmit={handleSubmit} className="mt-6 rounded-sm">
+        <PromptInput onSubmit={handleSubmit} className="mt-4 rounded-md">
           <PromptInputTextarea
             onChange={(e) => setInput(e.target.value)}
             value={input}
+            className="p-4"
           />
-          <PromptInputToolbar>
-            <PromptInputTools>
-              <PromptInputModelSelect
-                onValueChange={(value) => {
-                  setModel(value);
-                }}
-                value={model}
-              >
-                <PromptInputModelSelectTrigger>
-                  <PromptInputModelSelectValue />
-                </PromptInputModelSelectTrigger>
-                <PromptInputModelSelectContent>
-                  {models.map((model) => (
-                    <PromptInputModelSelectItem
-                      key={model.value}
-                      value={model.value}
-                    >
-                      {model.name}
-                    </PromptInputModelSelectItem>
-                  ))}
-                </PromptInputModelSelectContent>
-              </PromptInputModelSelect>
-            </PromptInputTools>
+          <PromptInputToolbar className="flex justify-end p-2">
             <PromptInputSubmit
               disabled={!input}
               status={status}
-              className="bg-[#3399ff] rounded-sm hover:bg-blue-500"
+              className="rounded-full"
             />
           </PromptInputToolbar>
         </PromptInput>
