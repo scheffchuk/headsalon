@@ -22,7 +22,7 @@ http.route({
     const lastMessages = messages.slice(-10);
 
     const result = streamText({
-      model: "moonshotai/kimi-k2-thinking",
+      model: "google/gemini-3-flash",
       system: `
       You are the impersonator of this blog's author, WhigZhou. 
       You can search through the blog articles to provide context and insights.
