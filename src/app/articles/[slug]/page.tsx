@@ -24,19 +24,20 @@ export async function generateMetadata(
 
   if (!article) {
     return {
-      title: "文章未找到 - HeadSalon",
+      title: "文章未找到",
       description: "所请求的文章不存在",
     };
   }
 
-  const title = `${article.title} - HeadSalon`;
   const description =
     article.excerpt ||
     article.content?.slice(0, 160) + "..." ||
     "HeadSalon 博客文章";
 
   return {
-    title,
+    title: {
+      absolute: article.title,
+    },
     description,
     keywords: article.tags?.join(", "),
     openGraph: {
@@ -45,6 +46,12 @@ export async function generateMetadata(
       type: "article",
       publishedTime: article.date,
       tags: article.tags,
+      siteName: "HeadSalon",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description,
     },
   };
 }

@@ -23,20 +23,27 @@ export async function generateMetadata(
   });
 
   const articleCount = articles.length;
-  const title = `标签: ${decodedTag} - HeadSalon`;
   const description =
     articleCount > 0
       ? `浏览所有标记为 "${decodedTag}" 的文章，共 ${articleCount} 篇文章`
       : `标记为 "${decodedTag}" 的文章`;
 
   return {
-    title,
+    title: {
+      absolute: `标签: ${decodedTag}`,
+    },
     description,
-    keywords: `${decodedTag}, 标签, 文章分类, HeadSalon`,
+    keywords: `${decodedTag}, 标签, 文章分类`,
     openGraph: {
       title: `标签: ${decodedTag}`,
       description,
       type: "website",
+      siteName: "HeadSalon",
+    },
+    twitter: {
+      card: "summary",
+      title: `标签: ${decodedTag}`,
+      description,
     },
   };
 }
@@ -84,8 +91,7 @@ export default function TagPage({ params }: TagPageProps) {
 }
 
 async function TagHeaderContent({ params }: TagPageProps) {
-  const { tag } = await params;
-  const decodedTag = decodeURIComponent(tag);
+  const decodedTag = decodeURIComponent((await params).tag);
 
   const articles = await fetchQuery(api.articles.getArticlesByTag, {
     tag: decodedTag,
@@ -100,8 +106,7 @@ async function TagHeaderContent({ params }: TagPageProps) {
 }
 
 async function TagPageContent({ params }: TagPageProps) {
-  const { tag } = await params;
-  const decodedTag = decodeURIComponent(tag);
+  const decodedTag = decodeURIComponent((await params).tag);
 
   const articles = await fetchQuery(api.articles.getArticlesByTag, {
     tag: decodedTag,
