@@ -3,7 +3,6 @@ import { httpAction } from "./_generated/server";
 import {
   convertToModelMessages,
   streamText,
-  UIMessage,
   tool,
   stepCountIs,
 } from "ai";
@@ -56,7 +55,6 @@ http.route({
               api.rag_search.searchArticlesRAG,
               {
                 query,
-                limit: 20,
               }
             );
 

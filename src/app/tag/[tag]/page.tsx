@@ -4,7 +4,7 @@ import type { Metadata, ResolvingMetadata } from "next";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "../../../../convex/_generated/api";
 import { TagArticles } from "./tag-articles";
-import { ArticlesSkeleton } from "@/components/articles/articles-skeleton";
+import { ArticleListSkeleton } from "@/components/articles/articles-skeleton";
 
 type TagPageProps = {
   params: Promise<{ tag: string }>;
@@ -73,7 +73,7 @@ export default function TagPage({ params }: TagPageProps) {
         {/* Articles List */}
         <Suspense
           fallback={
-            <ArticlesSkeleton />
+            <ArticleListSkeleton />
           }
         >
           <TagPageContent params={params} />

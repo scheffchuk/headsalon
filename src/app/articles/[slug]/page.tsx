@@ -65,6 +65,7 @@ async function ArticleContent({ params }: ArticlePageProps) {
     slug: decodeURIComponent(slug),
   });
 
+
   return (
     <ArticleWithScrollProgress>
       <Article article={article} />
