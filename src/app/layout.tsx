@@ -4,6 +4,8 @@ import "./globals.css";
 import { ConvexClientProvider } from "../providers/convex-client-provider";
 import { Toaster } from "@/components/ui/sonner";
 import Header from "@/components/header";
+import { Analytics } from '@vercel/analytics/next';
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -71,6 +73,7 @@ export default function RootLayout({
           </main>
         </div>
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );
