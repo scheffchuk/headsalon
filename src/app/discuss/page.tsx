@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import ChatBot from "./chat-bot";
 
+
 export default function DiscussPage() {
   return (
     <Suspense

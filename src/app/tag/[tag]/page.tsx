@@ -1,8 +1,7 @@
 import { Suspense } from "react";
 import { ViewTransition } from "react";
 import type { Metadata, ResolvingMetadata } from "next";
-import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../convex/_generated/api";
+import { getArticlesByTag } from "@/lib/convex-cache";
 import { TagArticles } from "./tag-articles";
 
 export async function generateMetadata(
@@ -13,9 +12,7 @@ export async function generateMetadata(
   const decodedTag = decodeURIComponent(tag);
 
   // Fetch articles for this tag to generate metadata
-  const articles = await fetchQuery(api.articles.getArticlesByTag, {
-    tag: decodedTag,
-  });
+  const articles = await getArticlesByTag(decodedTag);
 
   const articleCount = articles.length;
   const description =
@@ -71,9 +68,7 @@ export default function TagPage({ params }: PageProps<'/tag/[tag]'>) {
 
 async function TagPageContent({ tag }: { tag: string }) {
   const decodedTag = decodeURIComponent(tag);
-  const articles = await fetchQuery(api.articles.getArticlesByTag, {
-    tag: decodedTag,
-  });
+  const articles = await getArticlesByTag(decodedTag);
 
   return (
     <>

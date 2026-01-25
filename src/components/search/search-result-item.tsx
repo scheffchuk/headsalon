@@ -23,7 +23,7 @@ export function SearchResultItem({ article }: SearchResultItemProps) {
         <time dateTime={article.date}>{formatDate(article.date)}</time>
       </div>
 
-      {article.tags && article.tags.length > 0 && (
+      {article.tags?.length ? (
         <div className="flex flex-wrap gap-2 mt-2">
           {article.tags.map((tag: string) => (
             <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}>
@@ -36,7 +36,7 @@ export function SearchResultItem({ article }: SearchResultItemProps) {
             </Link>
           ))}
         </div>
-      )}
+      ) : null}
     </article>
   );
 }

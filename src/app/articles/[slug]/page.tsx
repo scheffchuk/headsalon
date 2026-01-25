@@ -1,8 +1,7 @@
 import { Suspense } from "react";
-import { fetchQuery } from "convex/nextjs";
 import { ViewTransition } from "react";
 import type { Metadata, ResolvingMetadata } from "next";
-import { api } from "../../../../convex/_generated/api";
+import { getArticleBySlug } from "@/lib/convex-cache";
 import { Article } from "./article";
 import { ArticleWithScrollProgress } from "./article-with-scroll-progress";
 import { ArticleSkeleton } from "@/components/article/article-skeleton";
@@ -14,9 +13,7 @@ export async function generateMetadata(
   const { slug } = await params;
 
   // Fetch article for metadata generation
-  const article = await fetchQuery(api.articles.getArticleBySlug, {
-    slug: decodeURIComponent(slug),
-  });
+  const article = await getArticleBySlug(slug);
 
   if (!article) {
     return {
@@ -66,9 +63,7 @@ export default function ArticlePage({ params }: PageProps<'/articles/[slug]'>) {
 }
 
 async function ArticleContent({ slug }: { slug: string }) {
-  const article = await fetchQuery(api.articles.getArticleBySlug, {
-    slug: decodeURIComponent(slug),
-  });
+  const article = await getArticleBySlug(slug);
 
   return (
     <ArticleWithScrollProgress>

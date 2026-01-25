@@ -42,7 +42,7 @@ export function Article({ article }: ArticleProps) {
             {formatDate(article.date)}
           </time>
         </CardDescription>
-        {article.tags && article.tags.length > 0 && (
+        {article.tags?.length ? (
           <div className="flex flex-wrap gap-2 mt-4">
             {article.tags.map((tag) => (
               <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}>
@@ -55,7 +55,7 @@ export function Article({ article }: ArticleProps) {
               </Link>
             ))}
           </div>
-        )}
+        ) : null}
       </CardHeader>
 
       <CardContent className="wrap-normal">

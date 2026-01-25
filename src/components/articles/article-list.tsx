@@ -25,8 +25,8 @@ export function ArticleList() {
   return (
     <div className="mx-auto py-8 mt-16">
       <div className="flex flex-col space-y-6">
-        {results.map((article, index) => (
-          <article className="py-4" key={`article-${index}`}>
+        {results.map((article) => (
+          <article className="py-4" key={article.slug}>
           <ViewTransition name={`title-${article.slug}`}>
             <Link href={`/articles/${article.slug}`} prefetch={true}>
               <h2 className="text-3xl font-semibold text-[#3399ff] hover:text-blue-500 transition-colors mb-3">
@@ -38,7 +38,7 @@ export function ArticleList() {
           <div className="flex items-center justify-between text-sm text-gray-500">
             <time dateTime={article.date}>{formatDate(article.date)}</time>
           </div>
-          {article.tags && article.tags.length > 0 && (
+          {article.tags?.length ? (
             <div className="flex flex-wrap gap-2 mt-2">
               {article.tags.map((tag) => (
                 <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}>
@@ -51,7 +51,7 @@ export function ArticleList() {
                 </Link>
               ))}
             </div>
-          )}
+          ) : null}
         </article>
         ))}
       </div>

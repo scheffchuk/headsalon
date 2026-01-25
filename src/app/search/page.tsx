@@ -1,6 +1,7 @@
 import { Suspense, ViewTransition } from "react";
 import SearchPageContent from "./search";
 
+
 export default function Search() {
   return (
     <ViewTransition>
