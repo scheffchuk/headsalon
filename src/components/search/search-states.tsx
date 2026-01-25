@@ -10,9 +10,9 @@ export function SearchStates({ state, query }: SearchStatesProps) {
     case "empty":
       return (
         <div className="text-center py-12">
-          <div className="text-muted-foreground text-lg mb-2">请输入关键词</div>
+          <div className="text-muted-foreground text-lg mb-2">支持语义搜索</div>
           <div className="text-sm text-muted-foreground">
-            支持语义搜索，标题、内容、主题、话题...
+            标题、内容、主题、记忆中的只言片语...
           </div>
         </div>
       );
