@@ -7,12 +7,8 @@ import { Article } from "./article";
 import { ArticleWithScrollProgress } from "./article-with-scroll-progress";
 import { ArticleSkeleton } from "@/components/article/article-skeleton";
 
-type ArticlePageProps = {
-  params: Promise<{ slug: string }>;
-};
-
 export async function generateMetadata(
-  { params }: ArticlePageProps,
+  { params }: PageProps<'/articles/[slug]'>,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { slug } = await params;
@@ -56,22 +52,23 @@ export async function generateMetadata(
   };
 }
 
-export default function ArticlePage({ params }: ArticlePageProps) {
+export default function ArticlePage({ params }: PageProps<'/articles/[slug]'>) {
   return (
     <ViewTransition>
       <Suspense fallback={<ArticleSkeleton />}>
-        <ArticleContent params={params} />
+      {
+        params.then(({slug}) => (
+        <ArticleContent slug={slug} />))
+      }
       </Suspense>
     </ViewTransition>
   );
 }
 
-async function ArticleContent({ params }: ArticlePageProps) {
-  const { slug } = await params;
+async function ArticleContent({ slug }: { slug: string }) {
   const article = await fetchQuery(api.articles.getArticleBySlug, {
     slug: decodeURIComponent(slug),
   });
-
 
   return (
     <ArticleWithScrollProgress>

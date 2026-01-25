@@ -4,14 +4,9 @@ import type { Metadata, ResolvingMetadata } from "next";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "../../../../convex/_generated/api";
 import { TagArticles } from "./tag-articles";
-import { ArticleListSkeleton } from "@/components/articles/articles-skeleton";
-
-type TagPageProps = {
-  params: Promise<{ tag: string }>;
-};
 
 export async function generateMetadata(
-  { params }: TagPageProps,
+  { params }: PageProps<'/tag/[tag]'>,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { tag } = await params;
@@ -48,7 +43,7 @@ export async function generateMetadata(
   };
 }
 
-export default function TagPage({ params }: TagPageProps) {
+export default function TagPage({ params }: PageProps<'/tag/[tag]'>) {
   return (
     <ViewTransition>
       <div className="mx-auto mt-16 pb-8">
@@ -59,40 +54,23 @@ export default function TagPage({ params }: TagPageProps) {
               <>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   标签：
-                  <span className="inline-block bg-gray-200 animate-pulse rounded px-2">
-                    ...
-                  </span>
                 </h1>
-                <p className="text-gray-600">
-                  找到{" "}
-                  <span className="inline-block bg-gray-200 animate-pulse rounded px-2">
-                    —
-                  </span>{" "}
-                  篇相关文章
-                </p>
               </>
             }
           >
-            <TagHeaderContent params={params} />
+            {
+              params.then(({tag}) => (
+              <TagPageContent tag={tag} />))
+            }
           </Suspense>
         </header>
-
-        {/* Articles List */}
-        <Suspense
-          fallback={
-            <ArticleListSkeleton />
-          }
-        >
-          <TagPageContent params={params} />
-        </Suspense>
       </div>
     </ViewTransition>
   );
 }
 
-async function TagHeaderContent({ params }: TagPageProps) {
-  const decodedTag = decodeURIComponent((await params).tag);
-
+async function TagPageContent({ tag }: { tag: string }) {
+  const decodedTag = decodeURIComponent(tag);
   const articles = await fetchQuery(api.articles.getArticlesByTag, {
     tag: decodedTag,
   });
@@ -101,16 +79,7 @@ async function TagHeaderContent({ params }: TagPageProps) {
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-2">标签：{decodedTag}</h1>
       <p className="text-gray-600">找到 {articles.length} 篇相关文章</p>
+      <TagArticles articles={articles} tag={decodedTag} />
     </>
   );
-}
-
-async function TagPageContent({ params }: TagPageProps) {
-  const decodedTag = decodeURIComponent((await params).tag);
-
-  const articles = await fetchQuery(api.articles.getArticlesByTag, {
-    tag: decodedTag,
-  });
-
-  return <TagArticles articles={articles} tag={decodedTag} />;
 }
