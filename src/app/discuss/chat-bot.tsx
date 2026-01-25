@@ -129,7 +129,7 @@ export default function ChatBot() {
             <PromptInputSubmit
               disabled={!input}
               status={status}
-              className="rounded-full"
+              className="rounded-md"
             />
           </PromptInputToolbar>
         </PromptInput>

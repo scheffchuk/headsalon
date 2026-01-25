@@ -5,11 +5,13 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import { BackButton } from "./back-button";
 
 type Article = {
   _id: string;
@@ -61,6 +63,10 @@ export function Article({ article }: ArticleProps) {
       <CardContent className="wrap-normal">
         <MarkdownRenderer content={article.content} />
       </CardContent>
+
+      <CardFooter>
+        <BackButton />
+      </CardFooter>
     </Card>
   );
 }
