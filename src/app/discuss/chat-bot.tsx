@@ -60,7 +60,7 @@ export default function ChatBot() {
   };
 
   return (
-    <div className="relative h-[calc(100vh-8rem)] mt-3">
+    <div className="relative h-[calc(100vh-8rem)] mt-6">
       <div className="flex flex-col h-full">
         <Conversation className="h-full">
           <ConversationContent>
@@ -116,7 +116,7 @@ export default function ChatBot() {
                           return (
                             <Tool
                               key={`${message.id}-${i}`}
-                              defaultOpen={part.state !== "output-available"}
+                              defaultOpen={false}
                             >
                               <ToolHeader
                                 type={part.type}
