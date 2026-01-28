@@ -28,6 +28,12 @@ import {
   ReasoningContent,
   ReasoningTrigger,
 } from "@/components/ai-elements/reasoning";
+import {
+  Tool,
+  ToolHeader,
+  ToolContent,
+  ToolInput,
+} from "@/components/ai-elements/tool";
 import { Loader } from "@/components/ai-elements/loader";
 
 const convexSiteUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.replace(
@@ -105,6 +111,22 @@ export default function ChatBot() {
                               <ReasoningTrigger />
                               <ReasoningContent>{part.text}</ReasoningContent>
                             </Reasoning>
+                          );
+                        case "tool-findRelatedArticle":
+                          return (
+                            <Tool
+                              key={`${message.id}-${i}`}
+                              defaultOpen={part.state !== "output-available"}
+                            >
+                              <ToolHeader
+                                type={part.type}
+                                state={part.state}
+                                title="Searching articles"
+                              />
+                              <ToolContent>
+                                <ToolInput input={part.input} />
+                              </ToolContent>
+                            </Tool>
                           );
                         default:
                           return null;
