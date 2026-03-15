@@ -5,158 +5,206 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import { Message, MessageContent } from "@/components/ai-elements/message";
+import {
+  Message,
+  MessageAction,
+  MessageActions,
+  MessageContent,
+  MessageResponse,
+} from "@/components/ai-elements/message";
+import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import {
   PromptInput,
+  PromptInputBody,
+  PromptInputFooter,
   PromptInputSubmit,
   PromptInputTextarea,
-  PromptInputToolbar
+  PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
-import { useState } from "react";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-
-import { Response } from "@/components/ai-elements/response";
-import {
-  Source,
-  Sources,
-  SourcesContent,
-  SourcesTrigger,
-} from "@/components/ai-elements/sources";
 import {
   Reasoning,
   ReasoningContent,
   ReasoningTrigger,
 } from "@/components/ai-elements/reasoning";
 import {
+  Source,
+  Sources,
+  SourcesContent,
+  SourcesTrigger,
+} from "@/components/ai-elements/sources";
+import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+import {
   Tool,
-  ToolHeader,
   ToolContent,
+  ToolHeader,
   ToolInput,
 } from "@/components/ai-elements/tool";
 import { Loader } from "@/components/ai-elements/loader";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { CheckIcon, CopyIcon } from "lucide-react";
+import { useCallback, useState } from "react";
 
 const convexSiteUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.replace(
   /.cloud$/,
   ".site"
 );
 
+const suggestions = [
+  "你是谁？",
+  "什么是达尔萨斯主义",
+  "AI将如何改变人类社会",
+];
+
+const CopyAction = ({ content }: { content: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleClick = useCallback(() => {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+  }, [content]);
+
+  return (
+    <MessageAction label={copied ? "Copied" : "Copy"} onClick={handleClick}>
+      {copied ? (
+        <CheckIcon className="size-4" />
+      ) : (
+        <CopyIcon className="size-4" />
+      )}
+    </MessageAction>
+  );
+};
+
 export default function ChatBot() {
-  const [input, setInput] = useState("");
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, stop } = useChat({
     transport: new DefaultChatTransport({
       api: `${convexSiteUrl}/api/chat`,
     }),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (input.trim()) {
-      sendMessage(
-        { text: input },
-      );
-      setInput("");
-    }
-  };
+  const handleSubmit = useCallback(
+    (message: PromptInputMessage) => {
+      if (!message.text.trim()) return;
+      sendMessage({ text: message.text });
+    },
+    [sendMessage]
+  );
+
+  const handleSuggestionClick = useCallback(
+    (suggestion: string) => sendMessage({ text: suggestion }),
+    [sendMessage]
+  );
 
   return (
-    <div className="relative h-[calc(100vh-8rem)] mt-6">
-      <div className="flex flex-col h-full">
-        <Conversation className="h-full">
-          <ConversationContent>
-            {messages.map((message) => (
-              <div key={message.id}>
-                {message.role === "assistant" &&
-                  message.parts.filter((part) => part.type === "source-url")
-                    .length > 0 && (
-                    <Sources>
-                      <SourcesTrigger
-                        count={
-                          message.parts.filter(
-                            (part) => part.type === "source-url"
-                          ).length
-                        }
-                      />
+    <div className="flex h-[calc(100vh-8rem)] flex-col mt-6">
+      <Conversation>
+        <ConversationContent>
+          {messages.map((message) => (
+            <div key={message.id} className="mb-4">
+              {message.role === "assistant" &&
+                message.parts.filter((part) => part.type === "source-url")
+                  .length > 0 && (
+                  <Sources>
+                    <SourcesTrigger
+                      count={
+                        message.parts.filter(
+                          (part) => part.type === "source-url"
+                        ).length
+                      }
+                    />
+                    <SourcesContent>
                       {message.parts
                         .filter((part) => part.type === "source-url")
-                        .map((part, i) => (
-                          <SourcesContent key={`${message.id}-${i}`}>
-                            <Source
-                              key={`${message.id}-${i}`}
-                              href={part.url}
-                              title={part.url}
-                            />
-                          </SourcesContent>
+                        .map((part) => (
+                          <Source
+                            key={part.url}
+                            href={part.url}
+                            title={part.url}
+                          />
                         ))}
-                    </Sources>
+                    </SourcesContent>
+                  </Sources>
+                )}
+              <Message from={message.role}>
+                <MessageContent>
+                  {message.parts.map((part, i) => {
+                    switch (part.type) {
+                      case "text":
+                        return (
+                          <MessageResponse key={`${message.id}-${i}`}>
+                            {part.text}
+                          </MessageResponse>
+                        );
+                      case "reasoning":
+                        return (
+                          <Reasoning
+                            key={`${message.id}-${i}`}
+                            className="w-full"
+                            isStreaming={status === "streaming"}
+                            defaultOpen={false}
+                          >
+                            <ReasoningTrigger />
+                            <ReasoningContent>{part.text}</ReasoningContent>
+                          </Reasoning>
+                        );
+                      case "tool-findRelatedArticle":
+                        return (
+                          <Tool key={`${message.id}-${i}`} defaultOpen={false}>
+                            <ToolHeader
+                              type={part.type}
+                              state={part.state}
+                              title="Searching articles"
+                            />
+                            <ToolContent>
+                              <ToolInput input={part.input} />
+                            </ToolContent>
+                          </Tool>
+                        );
+                      default:
+                        return null;
+                    }
+                  })}
+                </MessageContent>
+                {message.role === "assistant" &&
+                  (status === "ready" ||
+                    message.id !== messages.at(-1)?.id) && (
+                    <MessageActions>
+                      <CopyAction
+                        content={message.parts
+                          .filter((p) => p.type === "text")
+                          .map((p) => p.text)
+                          .join("\n")}
+                      />
+                    </MessageActions>
                   )}
-                <Message from={message.role} key={message.id}>
-                  <MessageContent>
-                    {message.parts.map((part, i) => {
-                      switch (part.type) {
-                        case "text":
-                          return (
-                            <Response key={`${message.id}-${i}`}>
-                              {part.text}
-                            </Response>
-                          );
-                        case "reasoning":
-                          return (
-                            <Reasoning
-                              key={`${message.id}-${i}`}
-                              className="w-full"
-                              isStreaming={status === "streaming"}
-                              defaultOpen={false}
-                            >
-                              <ReasoningTrigger />
-                              <ReasoningContent>{part.text}</ReasoningContent>
-                            </Reasoning>
-                          );
-                        case "tool-findRelatedArticle":
-                          return (
-                            <Tool
-                              key={`${message.id}-${i}`}
-                              defaultOpen={false}
-                            >
-                              <ToolHeader
-                                type={part.type}
-                                state={part.state}
-                                title="Searching articles"
-                              />
-                              <ToolContent>
-                                <ToolInput input={part.input} />
-                              </ToolContent>
-                            </Tool>
-                          );
-                        default:
-                          return null;
-                      }
-                    })}
-                  </MessageContent>
-                </Message>
-              </div>
-            ))}
-            {status === "submitted" && <Loader />}
-          </ConversationContent>
-          <ConversationScrollButton />
-        </Conversation>
+              </Message>
+            </div>
+          ))}
+          {status === "submitted" && <Loader />}
+        </ConversationContent>
+        <ConversationScrollButton />
+      </Conversation>
 
-        <PromptInput onSubmit={handleSubmit} className="mt-4 rounded-md">
-          <PromptInputTextarea
-            onChange={(e) => setInput(e.target.value)}
-            value={input}
-            className="p-4"
-          />
-          <PromptInputToolbar className="flex justify-end p-2">
-            <PromptInputSubmit
-              disabled={!input}
-              status={status}
-              className="rounded-md"
+      {messages.length === 0 && (
+        <Suggestions className="shrink-0 pt-4">
+          {suggestions.map((s) => (
+            <Suggestion
+              key={s}
+              suggestion={s}
+              onClick={handleSuggestionClick}
             />
-          </PromptInputToolbar>
-        </PromptInput>
-      </div>
+          ))}
+        </Suggestions>
+      )}
+      <PromptInput onSubmit={handleSubmit} className="shrink-0 mt-4">
+        <PromptInputBody>
+          <PromptInputTextarea />
+        </PromptInputBody>
+        <PromptInputFooter>
+          <PromptInputTools />
+          <PromptInputSubmit status={status} onStop={stop} />
+        </PromptInputFooter>
+      </PromptInput>
     </div>
   );
 }
-

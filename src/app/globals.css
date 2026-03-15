@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+@source "../node_modules/streamdown/dist/*.js";
 
 @theme inline {
   --color-background: var(--background);
@@ -183,3 +184,4 @@
     }
   }
 }
+

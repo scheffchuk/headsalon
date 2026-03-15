@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.43",
     "@ai-sdk/openai": "^2.0.19",
     "@ai-sdk/react": "^2.0.26",
     "@convex-dev/rag": "^0.5.2",
@@ -37,7 +38,7 @@
     "@vercel/analytics": "^1.6.1",
     "@xyflow/react": "^12.10.0",
     "ai": "^5.0.22",
-    "ai-elements": "^1.1.0",
+    "ai-elements": "^1.9.0",
     "ansi-to-react": "^6.2.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -49,6 +50,7 @@
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.534.0",
     "media-chrome": "^4.17.2",
+    "message": "^0.0.1",
     "motion": "^12.23.12",
     "nanoid": "^5.1.6",
     "next": "16.0.10",
@@ -60,7 +62,7 @@
     "react-markdown": "^10.1.0",
     "shiki": "^3.12.0",
     "sonner": "^2.0.7",
-    "streamdown": "^1.1.6",
+    "streamdown": "^2.4.0",
     "tailwind-merge": "^3.3.1",
     "tokenlens": "^1.3.1",
     "tsx": "^4.20.5",
