@@ -4,6 +4,7 @@ export type RoadmapNode = {
   children?: RoadmapNode[];
 };
 
+// Legacy data for the roadmap, ignore it for now
 export const romData: RoadmapNode = {
   name: "刷机包",
   children: [

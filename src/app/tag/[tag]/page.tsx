@@ -48,11 +48,9 @@ export default function TagPage({ params }: PageProps<'/tag/[tag]'>) {
         <header className="mb-8">
           <Suspense
             fallback={
-              <>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   标签：
                 </h1>
-              </>
             }
           >
             {
