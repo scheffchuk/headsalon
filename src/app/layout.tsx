@@ -62,7 +62,7 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/favicon.ico"></link>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className="max-w-3xl mx-auto px-4">
           <main>

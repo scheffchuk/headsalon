@@ -29,13 +29,13 @@ export function ArticleList() {
           <article className="py-4" key={article.slug}>
           <ViewTransition name={`title-${article.slug}`}>
             <Link href={`/articles/${article.slug}`} prefetch={true}>
-              <h2 className="text-3xl font-semibold text-[#3399ff] hover:text-blue-500 transition-colors mb-3">
+              <h2 className="text-3xl font-semibold text-brand hover:text-brand/80 focus-visible:text-brand/80 transition-colors mb-3">
                 {article.title}
               </h2>
             </Link>
           </ViewTransition>
     
-          <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
             <time dateTime={article.date}>{formatDate(article.date)}</time>
           </div>
           {article.tags?.length ? (
@@ -56,7 +56,7 @@ export function ArticleList() {
         ))}
       </div>
 
-      <div className="mt-8 flex justify-center">
+      <div className="mt-8 flex flex-col items-center gap-1">
         <Button
           onClick={() => loadMore(PAGE_SIZE)}
           disabled={status !== "CanLoadMore"}
@@ -65,7 +65,7 @@ export function ArticleList() {
           {status === "LoadingMore"
             ? "Loading…"
             : status === "Exhausted"
-            ? "No more"
+            ? `${results.length} articles`
             : "Load more"}
         </Button>
       </div>

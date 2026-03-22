@@ -48,7 +48,7 @@ export default function TagPage({ params }: PageProps<'/tag/[tag]'>) {
         <header className="mb-8">
           <Suspense
             fallback={
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <h1 className="text-3xl font-bold text-foreground mb-2">
                   标签：
                 </h1>
             }
@@ -70,8 +70,8 @@ async function TagPageContent({ tag }: { tag: string }) {
 
   return (
     <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">标签：{decodedTag}</h1>
-      <p className="text-gray-600">找到 {articles.length} 篇相关文章</p>
+      <h1 className="text-3xl font-bold text-foreground mb-2">标签：{decodedTag}</h1>
+      <p className="text-muted-foreground">找到 {articles.length} 篇相关文章</p>
       <TagArticles articles={articles} tag={decodedTag} />
     </>
   );

@@ -16,7 +16,7 @@ export function ArticleWithScrollProgress({
     <div className="mx-auto py-8" ref={ref}>
       <div className="pointer-events-none fixed left-0 top-0 w-full z-50">
         <ScrollProgress
-          className="absolute bg-[#3399FF]"
+          className="absolute bg-brand"
           containerRef={ref}
         />
       </div>

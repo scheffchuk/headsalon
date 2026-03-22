@@ -13,13 +13,13 @@ export function SearchResultItem({ article }: SearchResultItemProps) {
     <article className="py-4">
       <ViewTransition name={`title-${article.slug}`}>
         <Link href={`/articles/${article.slug}`} prefetch={true} target="_blank" rel="noopener noreferrer">
-          <h2 className="text-3xl font-semibold text-[#3399ff] hover:text-blue-500 transition-colors mb-3">
+          <h2 className="text-3xl font-semibold text-brand hover:text-brand/80 focus-visible:text-brand/80 transition-colors mb-3">
             {article.title}
           </h2>
         </Link>
       </ViewTransition>
 
-      <div className="flex items-center justify-between text-sm text-gray-500">
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
         <time dateTime={article.date}>{formatDate(article.date)}</time>
       </div>
 

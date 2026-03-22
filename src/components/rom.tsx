@@ -163,16 +163,16 @@ const getNodeRadius = (node: LayoutNode): number => {
 };
 
 const getNodeStrokeClass = (node: LayoutNode): string => {
-  if (node.isLeaf && node.hasUrl) return "stroke-blue-400";
-  if (node.isRoot) return "stroke-gray-800 stroke-[2px]";
-  return "stroke-blue-500 stroke-[2px]";
+  if (node.isLeaf && node.hasUrl) return "stroke-brand";
+  if (node.isRoot) return "stroke-foreground stroke-[2px]";
+  return "stroke-brand stroke-[2px]";
 };
 
 const getTextClass = (node: LayoutNode): string =>
   node.isRoot ? "text-2xl font-bold" : "text-lg font-semibold";
 
 const getTextFill = (node: LayoutNode): string =>
-  node.isRoot ? "#1f2937" : "#374151";
+  node.isRoot ? "var(--color-foreground)" : "var(--color-foreground)";
 
 // Reusable TreeNode component
 interface TreeNodeProps {
@@ -187,7 +187,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node }) => (
   >
     <circle
       r={getNodeRadius(node)}
-      className={`fill-white stroke-[1.5px] ${getNodeStrokeClass(node)}`}
+      className={`fill-background stroke-[1.5px] ${getNodeStrokeClass(node)}`}
     />
 
     {node.isLeaf && node.hasUrl && node.url ? (
@@ -197,7 +197,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node }) => (
           dx={6}
           textAnchor="start"
           className="text-md"
-          fill="#3399ff"
+          fill="var(--color-brand)"
           pointerEvents="none"
         >
           {node.name}
@@ -266,7 +266,7 @@ export default function Rom({ data, width, className = "" }: RoadmapTreeProps) {
               <path
                 key={`link-${index}`}
                 d={generatePath(link.source, link.target)}
-                className="fill-none stroke-gray-300 stroke-2"
+                className="fill-none stroke-border stroke-2"
               />
             ))}
 
