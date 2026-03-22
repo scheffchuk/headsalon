@@ -9,7 +9,7 @@ import { ViewTransition } from "react";
 import { Badge } from "../ui/badge";
 import { ArticleListSkeleton } from "./articles-skeleton";
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 30;
 
 export function ArticleList() {
   const { results, status, loadMore } = usePaginatedQuery(
