@@ -39,6 +39,23 @@ http.route({
   path: "/api/chat",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
+    // Convex dashboard: set AI_CHAT_ENABLED=true to restore chat (must match Next PUBLIC flag rollout).
+    if (process.env.AI_CHAT_ENABLED !== "true") {
+      return new Response(
+        JSON.stringify({
+          error: "AI chat is temporarily unavailable.",
+        }),
+        {
+          status: 503,
+          headers: new Headers({
+            "Access-Control-Allow-Origin": "*",
+            Vary: "origin",
+            "Content-Type": "application/json",
+          }),
+        }
+      );
+    }
+
     const { messages } =
       await req.json();
 
