@@ -23,7 +23,7 @@ function MaintenanceTapeBar({ className }: { className?: string }) {
 
 export default function ChatMaintenance() {
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col mt-6 items-center justify-center px-4">
+    <div className="flex flex-1 flex-col items-center justify-center px-4">
       <Card className="max-w-xl w-full overflow-hidden p-0 gap-0 shadow-md">
         <MaintenanceTapeBar />
 

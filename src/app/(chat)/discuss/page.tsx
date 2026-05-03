@@ -11,10 +11,8 @@ export default function DiscussPage() {
   return (
     <Suspense
       fallback={
-        <div className="relative h-[calc(100vh-10rem)] mt-3">
-          <div className="flex items-center justify-center h-full">
-            <div className="text-muted-foreground">Loading chat...</div>
-          </div>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="text-muted-foreground">Loading chat...</div>
         </div>
       }
     >

@@ -64,7 +64,7 @@ http.route({
     const result = streamText({
       model: "google/gemini-3-flash",
       system: systemPrompt,
-      messages: convertToModelMessages(lastMessages),
+      messages: await convertToModelMessages(lastMessages),
       stopWhen: stepCountIs(5),
       tools: {
         findRelatedArticle: tool({

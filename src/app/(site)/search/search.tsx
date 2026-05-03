@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useAction } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "../../../../convex/_generated/api";
 import { SearchResults } from "@/components/search/search-results";
 import { SmartSearch } from "@/components/smart-search";
 import type { SearchResult } from "@/types/search";
