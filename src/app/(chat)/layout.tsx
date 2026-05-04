@@ -1,3 +1,4 @@
+import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function ChatLayout({
@@ -15,9 +16,9 @@ export default function ChatLayout({
 
         <Link
           href="/"
-          className="fixed top-6 left-6 z-50 text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring rounded-sm"
+          className="fixed top-4 left-4 z-50 inline-flex items-center gap-2 rounded-sm p-2 font-medium text-foreground shadow-sm ring-primary/5 backdrop-blur-3xl transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring bg-background/80"
         >
-          Back to home
+          <ArrowLeftIcon aria-hidden className="size-4 shrink-0" />
         </Link>
       </div>
     </div>

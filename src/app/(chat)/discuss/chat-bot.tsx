@@ -47,14 +47,10 @@ import { useCallback, useState } from "react";
 
 const convexSiteUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.replace(
   /.cloud$/,
-  ".site"
+  ".site",
 );
 
-const suggestions = [
-  "你是谁？",
-  "什么是达尔萨斯主义",
-  "AI将如何改变人类社会",
-];
+const suggestions = ["你是谁？", "什么是达尔萨斯主义", "AI将如何改变人类社会"];
 
 const CopyAction = ({ content }: { content: string }) => {
   const [copied, setCopied] = useState(false);
@@ -87,16 +83,16 @@ export default function ChatBot() {
       if (!message.text.trim()) return;
       sendMessage({ text: message.text });
     },
-    [sendMessage]
+    [sendMessage],
   );
 
   const handleSuggestionClick = useCallback(
     (suggestion: string) => sendMessage({ text: suggestion }),
-    [sendMessage]
+    [sendMessage],
   );
 
   return (
-    <Conversation className="flex-1">
+    <Conversation>
       <ConversationContent className="mx-auto w-full max-w-3xl px-4 pt-6 pb-36">
         {messages.map((message) => (
           <div key={message.id} className="mb-4">
@@ -106,9 +102,8 @@ export default function ChatBot() {
                 <Sources>
                   <SourcesTrigger
                     count={
-                      message.parts.filter(
-                        (part) => part.type === "source-url"
-                      ).length
+                      message.parts.filter((part) => part.type === "source-url")
+                        .length
                     }
                   />
                   <SourcesContent>
@@ -169,8 +164,7 @@ export default function ChatBot() {
                 })}
               </MessageContent>
               {message.role === "assistant" &&
-                (status === "ready" ||
-                  message.id !== messages.at(-1)?.id) && (
+                (status === "ready" || message.id !== messages.at(-1)?.id) && (
                   <MessageActions>
                     <CopyAction
                       content={message.parts
@@ -183,7 +177,11 @@ export default function ChatBot() {
             </Message>
           </div>
         ))}
-        {status === "submitted" && <Loader />}
+        {status === "submitted" && (
+          <Message from="assistant">
+            <Loader className="self-start" />
+          </Message>
+        )}
       </ConversationContent>
 
       <div className="sticky bottom-0 mx-auto w-full max-w-3xl px-4">
@@ -201,7 +199,7 @@ export default function ChatBot() {
               ))}
             </Suggestions>
           )}
-          <PromptInput onSubmit={handleSubmit} className="pb-6">
+          <PromptInput onSubmit={handleSubmit} className="pb-4">
             <PromptInputBody>
               <PromptInputTextarea />
             </PromptInputBody>
