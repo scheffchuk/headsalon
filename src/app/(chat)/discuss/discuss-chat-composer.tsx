@@ -10,22 +10,18 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
-import type { DiscussChatRuntime } from "./use-discuss-chat";
+import { useDiscussChatContext } from "./discuss-chat-context";
 
 const suggestions = ["你是谁？", "什么是达尔萨斯主义", "AI将如何改变人类社会"];
 
-type DiscussChatComposerProps = Pick<
-  DiscussChatRuntime,
-  "messages" | "status" | "stop" | "handleSubmit" | "handleSuggestionClick"
->;
-
-export function DiscussChatComposer({
-  messages,
-  status,
-  stop,
-  handleSubmit,
-  handleSuggestionClick,
-}: DiscussChatComposerProps) {
+export function DiscussChatComposer() {
+  const {
+    messages,
+    status,
+    stop,
+    handleSubmit,
+    handleSuggestionClick,
+  } = useDiscussChatContext();
   return (
     <div className="sticky bottom-0 mx-auto w-full max-w-3xl px-4">
       <ConversationScrollButton className="absolute -top-12 left-1/2 -translate-x-1/2" />

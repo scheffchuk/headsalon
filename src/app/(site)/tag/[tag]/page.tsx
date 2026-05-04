@@ -2,7 +2,16 @@ import { Suspense } from "react";
 import { ViewTransition } from "react";
 import type { Metadata, ResolvingMetadata } from "next";
 import { getArticlesByTag } from "@/lib/convex-cache";
-import { TagArticles } from "./tag-articles";
+import { ArticlePreviewRow } from "@/components/articles/article-preview-row";
+
+type ArticleForTag = {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  tags: string[];
+  date: string;
+};
 
 export async function generateMetadata(
   { params }: PageProps<'/tag/[tag]'>,
@@ -72,7 +81,41 @@ async function TagPageContent({ tag }: { tag: string }) {
     <>
       <h1 className="text-3xl font-bold text-foreground mb-2">标签：{decodedTag}</h1>
       <p className="text-muted-foreground">找到 {articles.length} 篇相关文章</p>
-      <TagArticles articles={articles} tag={decodedTag} />
+      <TagArticlesList articles={articles} tag={decodedTag} />
     </>
+  );
+}
+
+function TagArticlesList({
+  articles,
+  tag,
+}: {
+  articles: ArticleForTag[];
+  tag: string;
+}) {
+  if (!articles.length) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-muted-foreground mb-4">该标签下暂无文章</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {articles.map((article) => (
+        <ArticlePreviewRow
+          key={article.slug}
+          article={{
+            _id: article._id,
+            title: article.title,
+            slug: article.slug,
+            date: article.date,
+            tags: article.tags,
+          }}
+          emphasizedTag={tag}
+        />
+      ))}
+    </div>
   );
 }

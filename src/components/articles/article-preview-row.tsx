@@ -54,7 +54,7 @@ export function ArticlePreviewRow({
   );
 
   return (
-    <article className="py-4">
+    <article className="py-4 [content-visibility:auto] [contain-intrinsic-size:auto_12rem]">
       {titleViewTransitionName ? (
         <ViewTransition name={titleViewTransitionName}>{titleLink}</ViewTransition>
       ) : (

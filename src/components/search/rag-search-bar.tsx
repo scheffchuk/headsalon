@@ -5,8 +5,62 @@ import { Clock, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-const HISTORY_KEY = "headsalon-search-history";
+const HISTORY_VERSION = "v1";
+const HISTORY_KEY = `headsalon-search-history:${HISTORY_VERSION}`;
+/** Pre-versioning key; migrated into HISTORY_KEY on first read. */
+const LEGACY_HISTORY_KEY_UNVERSIONED = "headsalon-search-history";
 const LEGACY_HISTORY_KEY = "smart-search-history";
+
+function parseHistoryJson(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item): item is string => typeof item === "string");
+  } catch {
+    return [];
+  }
+}
+
+function loadSearchHistoryList(): string[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    let merged = parseHistoryJson(localStorage.getItem(HISTORY_KEY));
+
+    if (merged.length === 0) {
+      merged = parseHistoryJson(
+        localStorage.getItem(LEGACY_HISTORY_KEY_UNVERSIONED),
+      );
+      if (merged.length > 0) {
+        try {
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(merged));
+          localStorage.removeItem(LEGACY_HISTORY_KEY_UNVERSIONED);
+        } catch {
+          /* private mode / quota */
+        }
+      }
+    }
+
+    if (merged.length === 0) {
+      const legacy = parseHistoryJson(localStorage.getItem(LEGACY_HISTORY_KEY));
+      if (legacy.length > 0) {
+        merged = legacy;
+        try {
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(merged));
+          localStorage.removeItem(LEGACY_HISTORY_KEY);
+          localStorage.removeItem(LEGACY_HISTORY_KEY_UNVERSIONED);
+        } catch {
+          /* private mode / quota */
+        }
+      }
+    }
+
+    return merged;
+  } catch {
+    return [];
+  }
+}
 
 export type RagSearchBarProps = {
   className?: string;
@@ -16,31 +70,6 @@ export type RagSearchBarProps = {
   searchHistory?: boolean;
   maxHistoryItems?: number;
 };
-
-function loadSearchHistoryList(): string[] {
-  if (typeof window === "undefined") return [];
-
-  let stored: unknown = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-  if (!Array.isArray(stored)) stored = [];
-  let merged = (stored as unknown[]).filter(
-    (item): item is string => typeof item === "string",
-  );
-  const legacyRaw = JSON.parse(
-    localStorage.getItem(LEGACY_HISTORY_KEY) || "[]",
-  );
-  if (
-    Array.isArray(legacyRaw) &&
-    legacyRaw.length > 0 &&
-    merged.length === 0
-  ) {
-    merged = legacyRaw.filter(
-      (item): item is string => typeof item === "string",
-    );
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(merged));
-    localStorage.removeItem(LEGACY_HISTORY_KEY);
-  }
-  return merged;
-}
 
 export function RagSearchBar({
   className,
@@ -89,13 +118,22 @@ export function RagSearchBar({
       q,
       ...historyList.filter((item) => item !== q),
     ].slice(0, maxHistoryItems);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+    } catch {
+      /* private mode / quota */
+    }
     setHistoryList(next);
   };
 
   const clearHistory = () => {
-    localStorage.removeItem(HISTORY_KEY);
-    localStorage.removeItem(LEGACY_HISTORY_KEY);
+    try {
+      localStorage.removeItem(HISTORY_KEY);
+      localStorage.removeItem(LEGACY_HISTORY_KEY_UNVERSIONED);
+      localStorage.removeItem(LEGACY_HISTORY_KEY);
+    } catch {
+      /* private mode / quota */
+    }
     setHistoryList([]);
   };
 

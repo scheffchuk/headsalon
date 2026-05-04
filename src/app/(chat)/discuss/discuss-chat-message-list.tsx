@@ -24,44 +24,37 @@ import {
   ToolInput,
 } from "@/components/ai-elements/tool";
 import { Loader } from "@/components/ai-elements/loader";
-import type { DiscussChatRuntime } from "./use-discuss-chat";
 import { DiscussChatCopyAction } from "./discuss-chat-copy-action";
+import { useDiscussChatContext } from "./discuss-chat-context";
 
-type DiscussChatMessageListProps = Pick<DiscussChatRuntime, "messages" | "status">;
-
-export function DiscussChatMessageList({
-  messages,
-  status,
-}: DiscussChatMessageListProps) {
+export function DiscussChatMessageList() {
+  const { messages, status } = useDiscussChatContext();
   return (
     <>
-      {messages.map((message) => (
-        <div key={message.id} className="mb-4">
-          {message.role === "assistant" &&
-            message.parts.filter((part) => part.type === "source-url").length >
-              0 && (
+      {messages.map((message) => {
+        const sourceUrlParts =
+          message.role === "assistant"
+            ? message.parts.filter((part) => part.type === "source-url")
+            : [];
+
+        return (
+          <div key={message.id} className="mb-4">
+            {sourceUrlParts.length > 0 ? (
               <Sources>
-                <SourcesTrigger
-                  count={
-                    message.parts.filter((part) => part.type === "source-url")
-                      .length
-                  }
-                />
+                <SourcesTrigger count={sourceUrlParts.length} />
                 <SourcesContent>
-                  {message.parts
-                    .filter((part) => part.type === "source-url")
-                    .map((part) => (
-                      <Source
-                        key={part.url}
-                        href={part.url}
-                        title={part.url}
-                      />
-                    ))}
+                  {sourceUrlParts.map((part) => (
+                    <Source
+                      key={part.url}
+                      href={part.url}
+                      title={part.url}
+                    />
+                  ))}
                 </SourcesContent>
               </Sources>
-            )}
-          <Message from={message.role}>
-            <MessageContent>
+            ) : null}
+            <Message from={message.role}>
+              <MessageContent>
               {message.parts.map((part, i) => {
                 switch (part.type) {
                   case "text":
@@ -103,21 +96,22 @@ export function DiscussChatMessageList({
                     return null;
                 }
               })}
-            </MessageContent>
-            {message.role === "assistant" &&
-              (status === "ready" || message.id !== messages.at(-1)?.id) && (
-                <MessageActions>
-                  <DiscussChatCopyAction
-                    content={message.parts
-                      .filter((p) => p.type === "text")
-                      .map((p) => p.text)
-                      .join("\n")}
-                  />
-                </MessageActions>
-              )}
-          </Message>
-        </div>
-      ))}
+              </MessageContent>
+              {message.role === "assistant" &&
+                (status === "ready" || message.id !== messages.at(-1)?.id) ? (
+                  <MessageActions>
+                    <DiscussChatCopyAction
+                      content={message.parts
+                        .filter((p) => p.type === "text")
+                        .map((p) => p.text)
+                        .join("\n")}
+                    />
+                  </MessageActions>
+                ) : null}
+            </Message>
+          </div>
+        );
+      })}
       {status === "submitted" && (
         <Message from="assistant">
           <Loader className="self-start" />
