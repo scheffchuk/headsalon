@@ -5,6 +5,10 @@ import { action, ActionCtx } from "./_generated/server";
 import { RAG } from "@convex-dev/rag";
 import { openai } from "@ai-sdk/openai";
 import { components } from "./_generated/api";
+import {
+  SearchResultValidator,
+  type SearchResult,
+} from "./searchResult";
 
 // Type-safe filter definition following official docs
 type ArticleFilters = {
@@ -14,48 +18,6 @@ type ArticleFilters = {
   tag: string;
   title: string;
 };
-
-// Use the exact same SearchResult interface as the frontend
-export type SearchResult = {
-  _id: string;
-  articleId: string;
-  title: string;
-  slug: string;
-  date: string;
-  tags: string[];
-  score?: number;
-  relevantChunks?: {
-    content: string;
-    score?: number;
-  }[];
-  _meta?: {
-    searchType: string;
-    semanticScore: number;
-  };
-};
-
-// Validators for SearchResult
-const RelevantChunkValidator = v.object({
-  content: v.string(),
-  score: v.optional(v.number()),
-});
-
-const SearchResultValidator = v.object({
-  _id: v.string(),
-  articleId: v.string(),
-  title: v.string(),
-  slug: v.string(),
-  date: v.string(),
-  tags: v.array(v.string()),
-  score: v.optional(v.number()),
-  relevantChunks: v.optional(v.array(RelevantChunkValidator)),
-  _meta: v.optional(
-    v.object({
-      searchType: v.string(),
-      semanticScore: v.number(),
-    })
-  ),
-});
 
 const rag = new RAG<ArticleFilters>(components.rag, {
   textEmbeddingModel: openai.embedding("text-embedding-3-large"),

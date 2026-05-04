@@ -1,4 +1,4 @@
-import TagArticleItem from "@/components/tag-article-item";
+import { ArticleListRow } from "@/components/articles/article-list-row";
 
 type Article = {
   _id: string;
@@ -24,8 +24,18 @@ export function TagArticles({ articles, tag }: TagArticlesProps) {
         </div>
       ) : (
         <div className="space-y-8">
-          {articles.map((article, index) => (
-            <TagArticleItem article={article} tag={tag} key={index} />
+          {articles.map((article) => (
+            <ArticleListRow
+              key={article.slug}
+              article={{
+                _id: article._id,
+                title: article.title,
+                slug: article.slug,
+                date: article.date,
+                tags: article.tags,
+              }}
+              emphasizedTag={tag}
+            />
           ))}
         </div>
       )}

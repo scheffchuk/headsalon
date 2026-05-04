@@ -32,8 +32,9 @@ export default function ChatMaintenance() {
           <CardDescription className="text-base pt-2 space-y-2">
             <p>由于 API 服务商问题，AI 对话功能已暂时关闭，正在想办法恢复。</p>
             <p className="text-muted-foreground/90">
-              AI chat is disabled due to an issue with our API provider. I'm
-              working on restoring it as soon as possible.
+              AI chat is disabled due to an issue with our API provider.
+              {" "}
+              {"I'm working on restoring it as soon as possible."}
             </p>
           </CardDescription>
         </CardHeader>

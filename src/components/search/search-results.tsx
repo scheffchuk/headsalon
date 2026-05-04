@@ -1,6 +1,6 @@
 import { SearchResultItem } from "./search-result-item";
 import { SearchStates } from "./search-states";
-import type { SearchResult } from "@/types/search";
+import type { SearchResult } from "@convex/searchResult";
 
 type SearchResultsProps = {
   query: string;

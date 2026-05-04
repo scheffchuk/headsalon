@@ -13,6 +13,7 @@ import type * as http from "../http.js";
 import type * as import_articles from "../import_articles.js";
 import type * as migrations from "../migrations.js";
 import type * as rag_search from "../rag_search.js";
+import type * as searchResult from "../searchResult.js";
 
 import type {
   ApiFromModules,
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   import_articles: typeof import_articles;
   migrations: typeof migrations;
   rag_search: typeof rag_search;
+  searchResult: typeof searchResult;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 

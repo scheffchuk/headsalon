@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import ReactMarkdown from "react-markdown";
 
 type MarkdownRendererProps = {
@@ -172,8 +171,9 @@ export function MarkdownRenderer({
             />
           ),
 
-          // Images with responsive styling
+          // Images with responsive styling (arbitrary Markdown URLs → native img)
           img: ({ node, alt, ...props }) => (
+            // eslint-disable-next-line @next/next/no-img-element -- remote content; no predictable loader config
             <img 
               className="max-w-full h-auto rounded-lg shadow-md my-6 mx-auto border"
               loading="lazy"

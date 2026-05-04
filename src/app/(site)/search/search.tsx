@@ -4,8 +4,8 @@ import { useRef, useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { SearchResults } from "@/components/search/search-results";
-import { SmartSearch } from "@/components/smart-search";
-import type { SearchResult } from "@/types/search";
+import { RagSearchBar } from "@/components/search/rag-search-bar";
+import type { SearchResult } from "@convex/searchResult";
 
 export default function SearchPageContent() {
   const searchAction = useAction(api.rag_search.searchArticlesRAG);
@@ -43,13 +43,11 @@ export default function SearchPageContent() {
       {/* Header */}
       <header className="mb-8">
         <h1 className="text-3xl font-bold mb-4">搜索文章</h1>
-        <SmartSearch
+        <RagSearchBar
           placeholder=""
           searchHistory={true}
-          // suggestions={suggestions}
           onSearch={handleSearch}
           onQueryChange={setQuery}
-          urlSync={false}
         />
       </header>
 

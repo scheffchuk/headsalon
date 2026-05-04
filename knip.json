@@ -1,0 +1,38 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "next": {
+    "config": "next.config.ts"
+  },
+  "rules": {
+    "files": "off",
+    "exports": "off",
+    "types": "off"
+  },
+  "ignore": ["src/components/ai-elements/**"],
+  "ignoreDependencies": [
+    "@radix-ui/react-accordion",
+    "@radix-ui/react-avatar",
+    "@radix-ui/react-collapsible",
+    "@radix-ui/react-dialog",
+    "@radix-ui/react-dropdown-menu",
+    "@radix-ui/react-hover-card",
+    "@radix-ui/react-popover",
+    "@radix-ui/react-progress",
+    "@radix-ui/react-scroll-area",
+    "@radix-ui/react-select",
+    "@radix-ui/react-separator",
+    "@radix-ui/react-slot",
+    "@radix-ui/react-switch",
+    "@radix-ui/react-tabs",
+    "@radix-ui/react-tooltip",
+    "ai-elements",
+    "@xyflow/react",
+    "@rive-app/react-webgl2",
+    "@tanstack/react-pacer",
+    "ansi-to-react",
+    "embla-carousel-react",
+    "media-chrome",
+    "react-jsx-parser",
+    "tokenlens"
+  ]
+}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ViewTransition } from "react";
 import { Badge } from "@/components/ui/badge";
-import type { SearchResult } from "@/types/search";
+import type { SearchResult } from "@convex/searchResult";
 import { formatDate } from "@/lib/utils";
 
 type SearchResultItemProps = {
