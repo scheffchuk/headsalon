@@ -1,4 +1,7 @@
-import { SearchResultItem } from "./search-result-item";
+import {
+  ArticlePreviewRow,
+  articlePreviewFromSearchResult,
+} from "@/components/articles/article-preview-row";
 import { SearchStates } from "./search-states";
 import type { SearchResult } from "@convex/searchResult";
 
@@ -23,8 +26,13 @@ export function SearchResults({
 
   return (
     <div className="flex flex-col space-y-6">
-      {results.map((article) => (
-        <SearchResultItem key={article._id} article={article} />
+      {results.map((hit) => (
+        <ArticlePreviewRow
+          key={hit._id}
+          article={articlePreviewFromSearchResult(hit)}
+          titleViewTransitionName={`title-${hit.slug}`}
+          openArticleInNewTab
+        />
       ))}
     </div>
   );

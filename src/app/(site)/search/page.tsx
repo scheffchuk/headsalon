@@ -1,6 +1,5 @@
+import { RagSearchExperience } from "@/components/search/rag-search-experience";
 import { Suspense, ViewTransition } from "react";
-import SearchPageContent from "./search";
-
 
 export default function Search() {
   return (
@@ -22,7 +21,7 @@ export default function Search() {
           </div>
         }
       >
-        <SearchPageContent />
+        <RagSearchExperience />
       </Suspense>
     </ViewTransition>
   );

@@ -2,9 +2,10 @@ import Link from "next/link";
 import { ViewTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import type { SearchResult } from "@convex/searchResult";
 
-/** Fields required to render one row on home or tag index (excerpt omitted intentionally). */
-export type ArticleListItem = {
+/** Fields required to render one **Article** row (chronological index, tag index, or RAG search). */
+export type ArticlePreview = {
   _id: string;
   title: string;
   slug: string;
@@ -12,21 +13,40 @@ export type ArticleListItem = {
   tags: string[];
 };
 
-type ArticleListRowProps = {
-  article: ArticleListItem;
-  /** When listing `/tag/[tag]`, badge for this tag uses `default` variant. */
+export type ArticlePreviewRowProps = {
+  article: ArticlePreview;
+  /** When listing a tag index, this tag uses the primary badge variant. */
   emphasizedTag?: string;
   /** When set, wraps the title link in ViewTransition (e.g. home `title-${slug}`). */
   titleViewTransitionName?: string;
+  /** RAG search opens the **Article** in a new tab. */
+  openArticleInNewTab?: boolean;
 };
 
-export function ArticleListRow({
+export function articlePreviewFromSearchResult(result: SearchResult): ArticlePreview {
+  return {
+    _id: result._id,
+    title: result.title,
+    slug: result.slug,
+    date: result.date,
+    tags: result.tags,
+  };
+}
+
+export function ArticlePreviewRow({
   article,
   emphasizedTag,
   titleViewTransitionName,
-}: ArticleListRowProps) {
+  openArticleInNewTab,
+}: ArticlePreviewRowProps) {
   const titleLink = (
-    <Link href={`/articles/${article.slug}`} prefetch={true}>
+    <Link
+      href={`/articles/${article.slug}`}
+      prefetch={true}
+      {...(openArticleInNewTab
+        ? { target: "_blank", rel: "noopener noreferrer" }
+        : {})}
+    >
       <h2 className="text-3xl font-semibold text-brand hover:text-brand/80 focus-visible:text-brand/80 transition-colors mb-3">
         {article.title}
       </h2>

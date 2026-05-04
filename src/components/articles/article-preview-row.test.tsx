@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
-import { ArticleListRow } from "./article-list-row";
+import { ArticlePreviewRow } from "./article-preview-row";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -19,10 +19,10 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-describe("ArticleListRow", () => {
+describe("ArticlePreviewRow", () => {
   test("renders article title, date, tags; emphasizes active tag badge", () => {
     render(
-      <ArticleListRow
+      <ArticlePreviewRow
         article={{
           _id: "kh77",
           title: "Test title",

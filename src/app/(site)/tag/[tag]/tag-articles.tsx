@@ -1,4 +1,4 @@
-import { ArticleListRow } from "@/components/articles/article-list-row";
+import { ArticlePreviewRow } from "@/components/articles/article-preview-row";
 
 type Article = {
   _id: string;
@@ -25,7 +25,7 @@ export function TagArticles({ articles, tag }: TagArticlesProps) {
       ) : (
         <div className="space-y-8">
           {articles.map((article) => (
-            <ArticleListRow
+            <ArticlePreviewRow
               key={article.slug}
               article={{
                 _id: article._id,
