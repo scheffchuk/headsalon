@@ -108,9 +108,16 @@ export function RagSearchBar({
     setSelectedIndex(-1);
   };
 
-  const filteredHistory = historyList.filter(
-    (h) => h.toLowerCase().includes(query.toLowerCase()) && h !== query,
+  const trimmedQuery = query.trim();
+  const queryLower = query.toLowerCase();
+  const historyMatchingQuery = historyList.filter(
+    (h) =>
+      h.toLowerCase().includes(queryLower) && h !== trimmedQuery,
   );
+  const dropdownItems =
+    historyMatchingQuery.length > 0
+      ? historyMatchingQuery
+      : historyList.filter((h) => h !== trimmedQuery);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -119,7 +126,7 @@ export function RagSearchBar({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    const items = filteredHistory;
+    const items = dropdownItems;
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
@@ -169,7 +176,9 @@ export function RagSearchBar({
       <div className="relative group">
         <Input
           ref={inputRef}
-          type="search"
+          type="text"
+          role="searchbox"
+          aria-label={placeholder}
           value={query}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
@@ -212,8 +221,8 @@ export function RagSearchBar({
 
       {searchHistory &&
         showDropdown &&
-        query.trim().length > 0 &&
-        filteredHistory.length > 0 && (
+        historyList.length > 0 &&
+        dropdownItems.length > 0 && (
           <div className="absolute top-full left-0 right-0 z-50 mt-1 min-w-32 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md max-h-64 overflow-y-auto">
             <div className="flex items-center justify-between px-2 py-1.5">
               <span className="text-xs font-semibold text-muted-foreground">
@@ -227,7 +236,7 @@ export function RagSearchBar({
                 Clear
               </button>
             </div>
-            {filteredHistory.map((historyItem, index) => (
+            {dropdownItems.map((historyItem, index) => (
               <button
                 key={historyItem}
                 type="button"
