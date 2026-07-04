@@ -5,22 +5,25 @@ const schema = defineSchema({
   articles: defineTable({
     title: v.string(),
     slug: v.string(),
+    urlKey: v.string(),
     content: v.string(),
     excerpt: v.optional(v.string()),
     tags: v.array(v.string()),
     date: v.string(),
   })
-    // Basic indexes
     .index("by_slug", ["slug"])
+    .index("by_urlKey", ["urlKey"])
     .index("by_date", ["date"])
     .index("by_tags", ["tags"]),
 
   articleTags: defineTable({
     articleId: v.id("articles"),
     tag: v.string(),
+    tagKey: v.string(),
     articleDate: v.string(),
   })
     .index("by_tag_and_articleDate", ["tag", "articleDate"])
+    .index("by_tagKey_and_articleDate", ["tagKey", "articleDate"])
     .index("by_articleId", ["articleId"]),
 });
 

@@ -36,8 +36,9 @@ Tool usage:
 - Synthesize retrieved content into coherent response; don't just quote
 - If articles lack relevant info: "Sorry, I can't find that information in the blog articles."
 
-Link format: [Article Title](/articles/<article-slug>)
-Example: [食物与人类6向下开拓](/articles/食物与人类6向下开拓)
+Link format: [Article Title](/articles/<article-url-key>)
+Example: [食物与人类6向下开拓](/articles/shi-wu-yu-ren-lei-6-xiang-xia-kai-tuo)
+Use the urlKey field from tool results, never the legacy slug.
 `;
 
 http.route({
@@ -75,6 +76,7 @@ http.route({
               id: article._id,
               title: article.title,
               slug: article.slug,
+              urlKey: article.urlKey,
               date: article.date,
               tags: article.tags,
               relevantChunks: article.relevantChunks?.slice(0, 2) || [],

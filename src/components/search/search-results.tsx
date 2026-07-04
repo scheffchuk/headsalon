@@ -30,7 +30,7 @@ export function SearchResults({
         <ArticlePreviewRow
           key={hit._id}
           article={articlePreviewFromSearchResult(hit)}
-          titleViewTransitionName={`title-${hit.slug}`}
+          titleViewTransitionName={`title-${hit.urlKey}`}
           openArticleInNewTab
         />
       ))}

@@ -1,26 +1,50 @@
 import { v } from "convex/values";
-import { query, internalQuery, mutation } from "./_generated/server";
+import { query, internalQuery } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import type { Doc } from "./_generated/dataModel";
 
-// Get articles for home page - paginated
+const articleListItemValidator = v.object({
+  _id: v.id("articles"),
+  title: v.string(),
+  slug: v.string(),
+  urlKey: v.string(),
+  date: v.string(),
+  tags: v.array(v.string()),
+});
+
+const articleByTagItemValidator = v.object({
+  _id: v.id("articles"),
+  title: v.string(),
+  slug: v.string(),
+  urlKey: v.string(),
+  excerpt: v.optional(v.string()),
+  tags: v.array(v.string()),
+  date: v.string(),
+});
+
+const fullArticleValidator = v.object({
+  _id: v.id("articles"),
+  _creationTime: v.number(),
+  title: v.string(),
+  slug: v.string(),
+  urlKey: v.string(),
+  content: v.string(),
+  excerpt: v.optional(v.string()),
+  tags: v.array(v.string()),
+  date: v.string(),
+});
+
 export const getArticles = query({
   args: {
     paginationOpts: paginationOptsValidator,
   },
   returns: v.object({
-    page: v.array(
-      v.object({
-        _id: v.id("articles"),
-        title: v.string(),
-        slug: v.string(),
-        date: v.string(),
-        tags: v.array(v.string()),
-      })
-    ),
+    page: v.array(articleListItemValidator),
     isDone: v.boolean(),
     continueCursor: v.union(v.string(), v.null()),
-    pageStatus: v.optional(v.union(v.literal("SplitRecommended"), v.literal("SplitRequired"), v.null())),
+    pageStatus: v.optional(
+      v.union(v.literal("SplitRecommended"), v.literal("SplitRequired"), v.null()),
+    ),
     splitCursor: v.optional(v.union(v.string(), v.null())),
   }),
   handler: async (ctx, args) => {
@@ -36,6 +60,7 @@ export const getArticles = query({
         _id: article._id,
         title: article.title,
         slug: article.slug,
+        urlKey: article.urlKey,
         date: article.date,
         tags: article.tags,
       })),
@@ -43,20 +68,46 @@ export const getArticles = query({
   },
 });
 
+export const getArticlesByTagKey = query({
+  args: {
+    tagKey: v.string(),
+  },
+  returns: v.array(articleByTagItemValidator),
+  handler: async (ctx, { tagKey }) => {
+    if (!tagKey.trim()) {
+      return [];
+    }
+
+    const tagEntries = await ctx.db
+      .query("articleTags")
+      .withIndex("by_tagKey_and_articleDate", (q) => q.eq("tagKey", tagKey))
+      .order("desc")
+      .collect();
+
+    const articles = await Promise.all(
+      tagEntries.map((entry) => ctx.db.get("articles", entry.articleId)),
+    );
+
+    return articles
+      .filter((article): article is Doc<"articles"> => article !== null)
+      .map((article) => ({
+        _id: article._id,
+        title: article.title,
+        slug: article.slug,
+        urlKey: article.urlKey,
+        excerpt: article.excerpt,
+        tags: article.tags,
+        date: article.date,
+      }));
+  },
+});
+
+/** Legacy lookup by display tag name (redirect resolution). */
 export const getArticlesByTag = query({
   args: {
     tag: v.string(),
   },
-  returns: v.array(
-    v.object({
-      _id: v.id("articles"),
-      title: v.string(),
-      slug: v.string(),
-      excerpt: v.optional(v.string()),
-      tags: v.array(v.string()),
-      date: v.string(),
-    })
-  ),
+  returns: v.array(articleByTagItemValidator),
   handler: async (ctx, { tag }) => {
     if (!tag.trim()) {
       return [];
@@ -68,18 +119,17 @@ export const getArticlesByTag = query({
       .order("desc")
       .collect();
 
-    // Batch retrieve articles by ID
     const articles = await Promise.all(
-      tagEntries.map((entry) => ctx.db.get(entry.articleId))
+      tagEntries.map((entry) => ctx.db.get("articles", entry.articleId)),
     );
 
-    // Filter out null results and return with excerpt
     return articles
       .filter((article): article is Doc<"articles"> => article !== null)
       .map((article) => ({
         _id: article._id,
         title: article.title,
         slug: article.slug,
+        urlKey: article.urlKey,
         excerpt: article.excerpt,
         tags: article.tags,
         date: article.date,
@@ -87,22 +137,25 @@ export const getArticlesByTag = query({
   },
 });
 
-// Get article by slug
+export const getArticleByUrlKey = query({
+  args: { urlKey: v.string() },
+  returns: v.union(fullArticleValidator, v.null()),
+  handler: async (ctx, { urlKey }) => {
+    if (!urlKey.trim()) {
+      return null;
+    }
+
+    return await ctx.db
+      .query("articles")
+      .withIndex("by_urlKey", (q) => q.eq("urlKey", urlKey))
+      .unique();
+  },
+});
+
+/** Legacy lookup by Unicode slug (redirect resolution). */
 export const getArticleBySlug = query({
   args: { slug: v.string() },
-  returns: v.union(
-    v.object({
-      _id: v.id("articles"),
-      _creationTime: v.number(),
-      title: v.string(),
-      slug: v.string(),
-      content: v.string(),
-      excerpt: v.optional(v.string()),
-      tags: v.array(v.string()),
-      date: v.string(),
-    }),
-    v.null()
-  ),
+  returns: v.union(fullArticleValidator, v.null()),
   handler: async (ctx, { slug }) => {
     if (!slug.trim()) {
       return null;
@@ -115,23 +168,10 @@ export const getArticleBySlug = query({
   },
 });
 
-// Internal query to get article by ID - used by embedding generation
 export const getArticleById = internalQuery({
   args: { id: v.id("articles") },
-  returns: v.union(
-    v.object({
-      _id: v.id("articles"),
-      _creationTime: v.number(),
-      title: v.string(),
-      slug: v.string(),
-      content: v.string(),
-      excerpt: v.optional(v.string()),
-      tags: v.array(v.string()),
-      date: v.string(),
-    }),
-    v.null()
-  ),
+  returns: v.union(fullArticleValidator, v.null()),
   handler: async (ctx, { id }) => {
-    return await ctx.db.get(id);
+    return await ctx.db.get("articles", id);
   },
 });

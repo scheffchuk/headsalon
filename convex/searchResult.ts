@@ -10,6 +10,7 @@ export const SearchResultValidator = v.object({
   articleId: v.string(),
   title: v.string(),
   slug: v.string(),
+  urlKey: v.string(),
   date: v.string(),
   tags: v.array(v.string()),
   score: v.optional(v.number()),

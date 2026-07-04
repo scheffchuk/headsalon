@@ -27,6 +27,7 @@ describe("ArticlePreviewRow", () => {
           _id: "kh77",
           title: "Test title",
           slug: "test-title",
+          urlKey: "test-title",
           date: "2025-05-04",
           tags: ["topic", "other"],
         }}

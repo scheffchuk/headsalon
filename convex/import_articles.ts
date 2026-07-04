@@ -5,12 +5,13 @@ import { action } from "./_generated/server";
 import { RAG } from "@convex-dev/rag";
 import { openai } from "@ai-sdk/openai";
 import { components } from "./_generated/api";
+import { slugifyForUrlKey } from "./lib/urlKey";
 
 // Initialize RAG component with Chinese-optimized embedding model
 const rag = new RAG(components.rag, {
   textEmbeddingModel: openai.embedding("text-embedding-3-large"),
   embeddingDimension: 3072, // text-embedding-3-large dimensions
-  filterNames: ["slug", "date", "creationTime", "tag", "title"],
+  filterNames: ["slug", "urlKey", "date", "creationTime", "tag", "title"],
 });
 
 // Namespace for organizing content - using "articles" for blog content
@@ -24,6 +25,7 @@ const ArticleValidator = v.object({
   date: v.string(),
   excerpt: v.string(),
   slug: v.string(),
+  urlKey: v.optional(v.string()),
   tags: v.array(v.string()),
   title: v.string(),
 });
@@ -72,6 +74,7 @@ export const importArticlesBatch = action({
           // Add content to RAG with full metadata for filtering
           // Handle multiple tags by creating a single combined tag filter
           const tagString = article.tags.join("|"); // Join tags with separator
+          const urlKey = article.urlKey ?? slugifyForUrlKey(article.title);
 
           await rag.add(ctx, {
             namespace: ARTICLES_NAMESPACE,
@@ -80,6 +83,7 @@ export const importArticlesBatch = action({
             importance: 1.0, // All articles have equal importance
             filterValues: [
               { name: "slug", value: article.slug },
+              { name: "urlKey", value: urlKey },
               { name: "date", value: article.date },
               { name: "creationTime", value: article._creationTime.toString() },
               { name: "tag", value: tagString }, // Single tag field with all tags
@@ -167,6 +171,7 @@ export const importArticlesSimple = action({
           // Add content to RAG with full metadata for filtering
           // Handle multiple tags by creating a single combined tag filter
           const tagString = article.tags.join("|"); // Join tags with separator
+          const urlKey = article.urlKey ?? slugifyForUrlKey(article.title);
 
           await rag.add(ctx, {
             namespace: ARTICLES_NAMESPACE,
@@ -175,6 +180,7 @@ export const importArticlesSimple = action({
             importance: 1.0, // All articles have equal importance
             filterValues: [
               { name: "slug", value: article.slug },
+              { name: "urlKey", value: urlKey },
               { name: "date", value: article.date },
               { name: "creationTime", value: article._creationTime.toString() },
               { name: "tag", value: tagString }, // Single tag field with all tags
