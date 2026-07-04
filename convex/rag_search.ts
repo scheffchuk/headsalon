@@ -13,7 +13,6 @@ import {
 // Type-safe filter definition following official docs
 type ArticleFilters = {
   slug: string;
-  shortId: string;
   date: string;
   creationTime: string;
   tag: string;
@@ -23,7 +22,7 @@ type ArticleFilters = {
 const rag = new RAG<ArticleFilters>(components.rag, {
   textEmbeddingModel: openai.embedding("text-embedding-3-large"),
   embeddingDimension: 3072,
-  filterNames: ["slug", "shortId", "date", "creationTime", "tag", "title"],
+  filterNames: ["slug", "date", "creationTime", "tag", "title"],
 });
 
 const ARTICLES_NAMESPACE = "articles";
@@ -117,7 +116,7 @@ function transformSearchResults(
       // Get title directly from filter values
       const title = (filters.get("title") as string) || "Untitled";
       const slug = (filters.get("slug") as string) || "";
-      const shortId = (filters.get("shortId") as string) || "";
+      const articleId = entry.key || entry.entryId;
 
       // Create relevant chunks (max 3 for semantic search)
       const relevantChunks =
@@ -127,11 +126,10 @@ function transformSearchResults(
         })) || [];
 
       return {
-        _id: entry.key || entry.entryId,
-        articleId: entry.key || entry.entryId,
+        _id: articleId,
+        articleId,
         title,
         slug,
-        shortId,
         tags,
         date: (filters.get("date") as string) || "",
         score: result.score,
@@ -149,7 +147,6 @@ export const addArticleToRAG = action({
     articleId: v.string(),
     title: v.string(),
     slug: v.string(),
-    shortId: v.string(),
     content: v.string(),
     excerpt: v.optional(v.string()),
     tags: v.array(v.string()),
@@ -161,7 +158,7 @@ export const addArticleToRAG = action({
   }),
   handler: async (
     ctx: ActionCtx,
-    { articleId, title, slug, shortId, content, tags, date }
+    { articleId, title, slug, content, tags, date }
   ) => {
     try {
       const fullText = `${title}\n\n${content}`;
@@ -174,7 +171,6 @@ export const addArticleToRAG = action({
         importance: 1.0,
         filterValues: [
           { name: "slug", value: slug },
-          { name: "shortId", value: shortId },
           { name: "date", value: date },
           { name: "creationTime", value: Date.now().toString() },
           { name: "tag", value: tagString },

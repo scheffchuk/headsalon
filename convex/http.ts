@@ -36,9 +36,8 @@ Tool usage:
 - Synthesize retrieved content into coherent response; don't just quote
 - If articles lack relevant info: "Sorry, I can't find that information in the blog articles."
 
-Link format: [Article Title](/articles/<shortId>)
-Example: [食物与人类6向下开拓](/articles/a3f9k2X1)
-Use shortId from tool results only.
+Link format: [Article Title](/articles/<id>)
+Example: use the id field from tool results (Convex document id).
 `;
 
 http.route({
@@ -76,7 +75,6 @@ http.route({
               id: article._id,
               title: article.title,
               slug: article.slug,
-              shortId: article.shortId,
               date: article.date,
               tags: article.tags,
               relevantChunks: article.relevantChunks?.slice(0, 2) || [],

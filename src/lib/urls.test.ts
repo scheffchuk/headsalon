@@ -2,8 +2,10 @@ import { describe, expect, test } from "vitest";
 import { articleUrl, tagUrl } from "./urls";
 
 describe("articleUrl", () => {
-  test("uses shortId only", () => {
-    expect(articleUrl({ shortId: "a3f9k2X1" })).toBe("/articles/a3f9k2X1");
+  test("uses Convex document id", () => {
+    expect(articleUrl({ _id: "j57abc123def4567890123456789012" })).toBe(
+      "/articles/j57abc123def4567890123456789012",
+    );
   });
 });
 

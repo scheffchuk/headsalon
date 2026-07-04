@@ -10,7 +10,6 @@ type ArticleForTag = {
   _id: string;
   title: string;
   slug: string;
-  shortId: string;
   excerpt?: string;
   tags: string[];
   date: string;
@@ -106,12 +105,11 @@ function TagArticlesList({
     <div className="space-y-8">
       {articles.map((article) => (
         <ArticlePreviewRow
-          key={article.shortId}
+          key={article._id}
           article={{
             _id: article._id,
             title: article.title,
             slug: article.slug,
-            shortId: article.shortId,
             date: article.date,
             tags: article.tags,
           }}

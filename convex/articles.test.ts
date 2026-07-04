@@ -18,9 +18,9 @@ describe("articles queries", () => {
     expect(r).toBeNull();
   });
 
-  test("getArticleByShortId returns null when shortId whitespace only", async () => {
+  test("getArticleByParam returns null when param blank", async () => {
     const t = convexTest({ schema, modules });
-    const r = await t.query(api.articles.getArticleByShortId, { shortId: "   " });
+    const r = await t.query(api.articles.getArticleByParam, { param: "  " });
     expect(r).toBeNull();
   });
 
@@ -36,7 +36,6 @@ describe("articles queries", () => {
       await ctx.db.insert("articles", {
         title: "Hello",
         slug: "hello",
-        shortId: "abc12345",
         content: "body",
         tags: ["topic"],
         date: "2025-05-04",
@@ -51,11 +50,33 @@ describe("articles queries", () => {
     expect(page.page[0]).toMatchObject({
       title: "Hello",
       slug: "hello",
-      shortId: "abc12345",
       date: "2025-05-04",
       tags: ["topic"],
     });
     expect(page.page[0]._id).toBeTruthy();
+  });
+
+  test("getArticleByParam resolves by slug then by id", async () => {
+    const t = convexTest({ schema, modules });
+    const articleId = await t.run(async (ctx) =>
+      ctx.db.insert("articles", {
+        title: "T",
+        slug: "legacy-slug",
+        content: "c",
+        tags: [],
+        date: "2025-05-03",
+      }),
+    );
+
+    const bySlug = await t.query(api.articles.getArticleByParam, {
+      param: "legacy-slug",
+    });
+    expect(bySlug?._id).toBe(articleId);
+
+    const byId = await t.query(api.articles.getArticleByParam, {
+      param: articleId,
+    });
+    expect(byId?._id).toBe(articleId);
   });
 
   test("getArticlesByTag joins articleTags index", async () => {
@@ -65,7 +86,6 @@ describe("articles queries", () => {
       ctx.db.insert("articles", {
         title: "T",
         slug: "slug-t",
-        shortId: "short001",
         content: "c",
         excerpt: "e",
         tags: [tag],
@@ -85,37 +105,27 @@ describe("articles queries", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({
       slug: "slug-t",
-      shortId: "short001",
       title: "T",
       tags: [tag],
     });
   });
 
-  test("backfillShortIds assigns shortId", async () => {
+  test("backfillArticleTags inserts missing join rows", async () => {
     const t = convexTest({ schema, modules });
     const articleId = await t.run(async (ctx) =>
       ctx.db.insert("articles", {
         title: "Hello World",
         slug: "legacy-slug",
-        shortId: "",
         content: "c",
         tags: ["哲学"],
         date: "2025-05-01",
       }),
     );
-    await t.run(async (ctx) => {
-      await ctx.db.insert("articleTags", {
-        articleId,
-        tag: "哲学",
-        articleDate: "2025-05-01",
-      });
-    });
 
-    const result = await t.mutation(internal.migrations.backfillShortIds, {});
-    expect(result.articlesUpdated).toBe(1);
+    const result = await t.mutation(internal.migrations.backfillArticleTags, {});
+    expect(result.tagRowsInserted).toBe(1);
 
-    const article = await t.run(async (ctx) => ctx.db.get("articles", articleId));
-    expect(article?.shortId).toMatch(/^[a-zA-Z0-9]{8}$/);
-    expect(article?.slug).toBe("legacy-slug");
+    const rows = await t.query(api.articles.getArticlesByTag, { tag: "哲学" });
+    expect(rows[0]?._id).toBe(articleId);
   });
 });

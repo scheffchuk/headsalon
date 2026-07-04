@@ -1,6 +1,6 @@
-/** Canonical article URL: /articles/{shortId} */
-export function articleUrl(article: { shortId: string }): string {
-  return `/articles/${article.shortId}`;
+/** Canonical article URL: /articles/{id} */
+export function articleUrl(article: { _id: string }): string {
+  return `/articles/${article._id}`;
 }
 
 export function tagUrl(tag: string): string {

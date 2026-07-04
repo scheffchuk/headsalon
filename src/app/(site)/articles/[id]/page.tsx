@@ -2,38 +2,34 @@ import { Suspense } from "react";
 import { ViewTransition } from "react";
 import type { Metadata, ResolvingMetadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import {
-  getArticleByShortId,
-  getArticleBySlug,
-} from "@/lib/convex-cache";
+import { getArticleByParam } from "@/lib/convex-cache";
 import { articleUrl } from "@/lib/urls";
 import { Article } from "./article";
 import { ArticleWithScrollProgress } from "./article-with-scroll-progress";
 import { ArticleSkeleton } from "@/components/article/article-skeleton";
 
 async function resolveArticle(param: string) {
-  const byShortId = await getArticleByShortId(param);
-  if (byShortId) {
-    return { article: byShortId, legacyRedirect: null as string | null };
+  const article = await getArticleByParam(param);
+  if (!article) {
+    return { article: null, legacyRedirect: null as string | null };
   }
 
-  const bySlug = await getArticleBySlug(param);
-  if (bySlug) {
+  if (param !== article._id) {
     return {
-      article: bySlug,
-      legacyRedirect: articleUrl({ shortId: bySlug.shortId }),
+      article,
+      legacyRedirect: articleUrl(article),
     };
   }
 
-  return { article: null, legacyRedirect: null as string | null };
+  return { article, legacyRedirect: null as string | null };
 }
 
 export async function generateMetadata(
-  { params }: PageProps<"/articles/[shortId]">,
+  { params }: PageProps<"/articles/[id]">,
   _parent: ResolvingMetadata,
 ): Promise<Metadata> {
-  const { shortId } = await params;
-  const { article, legacyRedirect } = await resolveArticle(shortId);
+  const { id } = await params;
+  const { article, legacyRedirect } = await resolveArticle(id);
 
   if (legacyRedirect) {
     return {};
@@ -79,22 +75,20 @@ export async function generateMetadata(
   };
 }
 
-export default function ArticlePage({
-  params,
-}: PageProps<"/articles/[shortId]">) {
+export default function ArticlePage({ params }: PageProps<"/articles/[id]">) {
   return (
     <ViewTransition>
       <Suspense fallback={<ArticleSkeleton />}>
-        {params.then(({ shortId }) => (
-          <ArticleContent shortId={shortId} />
+        {params.then(({ id }) => (
+          <ArticleContent id={id} />
         ))}
       </Suspense>
     </ViewTransition>
   );
 }
 
-async function ArticleContent({ shortId }: { shortId: string }) {
-  const { article, legacyRedirect } = await resolveArticle(shortId);
+async function ArticleContent({ id }: { id: string }) {
+  const { article, legacyRedirect } = await resolveArticle(id);
 
   if (legacyRedirect) {
     permanentRedirect(legacyRedirect);

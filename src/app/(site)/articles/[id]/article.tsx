@@ -18,7 +18,6 @@ type Article = {
   _id: string;
   title: string;
   slug: string;
-  shortId: string;
   content: string;
   excerpt?: string;
   tags: string[];

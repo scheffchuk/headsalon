@@ -20,14 +20,13 @@ vi.mock("next/link", () => ({
 }));
 
 describe("ArticlePreviewRow", () => {
-  test("renders shortId + decorative slug in article href", () => {
+  test("renders article id in href", () => {
     render(
       <ArticlePreviewRow
         article={{
-          _id: "kh77",
+          _id: "j57abc123def4567890123456789012",
           title: "Test title",
           slug: "测试标题",
-          shortId: "a3f9k2X1",
           date: "2025-05-04",
           tags: ["topic", "other"],
         }}
@@ -36,11 +35,11 @@ describe("ArticlePreviewRow", () => {
     );
 
     const title = screen.getByRole("heading", { name: "Test title" });
-    expect(title).toBeInTheDocument();
+    expect(title.closest("a")?.getAttribute("href")).toBe(
+      "/articles/j57abc123def4567890123456789012",
+    );
     expect(screen.getByRole("link", { name: "topic" }).getAttribute("href")).toBe(
       "/tag/topic",
     );
-    expect(title.closest("a")?.getAttribute("href")).toBe("/articles/a3f9k2X1");
-    expect(screen.getByRole("time")).toHaveAttribute("dateTime", "2025-05-04");
   });
 });

@@ -2,8 +2,8 @@ import { cache } from "react";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
 
-export const getArticleByShortId = cache((shortId: string) =>
-  fetchQuery(api.articles.getArticleByShortId, { shortId }),
+export const getArticleByParam = cache((param: string) =>
+  fetchQuery(api.articles.getArticleByParam, { param }),
 );
 
 export const getArticleBySlug = cache((slug: string) =>

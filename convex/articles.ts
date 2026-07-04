@@ -1,13 +1,12 @@
 import { v } from "convex/values";
-import { query, internalQuery } from "./_generated/server";
+import { query } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
-import type { Doc } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 
 const articleListItemValidator = v.object({
   _id: v.id("articles"),
   title: v.string(),
   slug: v.string(),
-  shortId: v.string(),
   date: v.string(),
   tags: v.array(v.string()),
 });
@@ -16,7 +15,6 @@ const articleByTagItemValidator = v.object({
   _id: v.id("articles"),
   title: v.string(),
   slug: v.string(),
-  shortId: v.string(),
   excerpt: v.optional(v.string()),
   tags: v.array(v.string()),
   date: v.string(),
@@ -27,7 +25,6 @@ const fullArticleValidator = v.object({
   _creationTime: v.number(),
   title: v.string(),
   slug: v.string(),
-  shortId: v.string(),
   content: v.string(),
   excerpt: v.optional(v.string()),
   tags: v.array(v.string()),
@@ -60,7 +57,6 @@ export const getArticles = query({
         _id: article._id,
         title: article.title,
         slug: article.slug,
-        shortId: article.shortId,
         date: article.date,
         tags: article.tags,
       })),
@@ -94,7 +90,6 @@ export const getArticlesByTag = query({
         _id: article._id,
         title: article.title,
         slug: article.slug,
-        shortId: article.shortId,
         excerpt: article.excerpt,
         tags: article.tags,
         date: article.date,
@@ -102,18 +97,11 @@ export const getArticlesByTag = query({
   },
 });
 
-export const getArticleByShortId = query({
-  args: { shortId: v.string() },
+export const getArticleById = query({
+  args: { id: v.id("articles") },
   returns: v.union(fullArticleValidator, v.null()),
-  handler: async (ctx, { shortId }) => {
-    if (!shortId.trim()) {
-      return null;
-    }
-
-    return await ctx.db
-      .query("articles")
-      .withIndex("by_shortId", (q) => q.eq("shortId", shortId))
-      .unique();
+  handler: async (ctx, { id }) => {
+    return await ctx.db.get("articles", id);
   },
 });
 
@@ -133,10 +121,34 @@ export const getArticleBySlug = query({
   },
 });
 
-export const getArticleById = internalQuery({
-  args: { id: v.id("articles") },
+/** Route param may be a Convex id or a legacy slug — try both. */
+export const getArticleByParam = query({
+  args: { param: v.string() },
   returns: v.union(fullArticleValidator, v.null()),
-  handler: async (ctx, { id }) => {
-    return await ctx.db.get("articles", id);
+  handler: async (ctx, { param }) => {
+    const trimmed = param.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    if (looksLikeConvexId(trimmed)) {
+      const byId = await ctx.db.get("articles", trimmed as Id<"articles">);
+      if (byId) {
+        return byId;
+      }
+    }
+
+    return await ctx.db
+      .query("articles")
+      .withIndex("by_slug", (q) => q.eq("slug", trimmed))
+      .unique();
   },
 });
+
+function looksLikeConvexId(value: string): boolean {
+  return (
+    value.length >= 20 &&
+    /^[a-z0-9]+$/i.test(value) &&
+    !/[\u4e00-\u9fff]/.test(value)
+  );
+}
