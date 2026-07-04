@@ -3,7 +3,6 @@ import { convexTest } from "convex-test";
 import { describe, expect, test } from "vitest";
 import { api, internal } from "./_generated/api";
 import schema from "./schema";
-import { tagKeyFromDisplayName } from "./lib/urlKey";
 
 const modules = import.meta.glob<{ default?: unknown }>(
   ["./schema.ts", "./articles.ts", "./migrations.ts", "./lib/**/*.ts", "./_generated/**/*"],
@@ -19,9 +18,9 @@ describe("articles queries", () => {
     expect(r).toBeNull();
   });
 
-  test("getArticleByUrlKey returns null when urlKey whitespace only", async () => {
+  test("getArticleByShortId returns null when shortId whitespace only", async () => {
     const t = convexTest({ schema, modules });
-    const r = await t.query(api.articles.getArticleByUrlKey, { urlKey: "   " });
+    const r = await t.query(api.articles.getArticleByShortId, { shortId: "   " });
     expect(r).toBeNull();
   });
 
@@ -31,19 +30,13 @@ describe("articles queries", () => {
     expect(r).toEqual([]);
   });
 
-  test("getArticlesByTagKey returns empty when tagKey blank", async () => {
-    const t = convexTest({ schema, modules });
-    const r = await t.query(api.articles.getArticlesByTagKey, { tagKey: "  " });
-    expect(r).toEqual([]);
-  });
-
   test("getArticles pagination returns list projection shape", async () => {
     const t = convexTest({ schema, modules });
     await t.run(async (ctx) => {
       await ctx.db.insert("articles", {
         title: "Hello",
         slug: "hello",
-        urlKey: "hello",
+        shortId: "abc12345",
         content: "body",
         tags: ["topic"],
         date: "2025-05-04",
@@ -58,22 +51,21 @@ describe("articles queries", () => {
     expect(page.page[0]).toMatchObject({
       title: "Hello",
       slug: "hello",
-      urlKey: "hello",
+      shortId: "abc12345",
       date: "2025-05-04",
       tags: ["topic"],
     });
     expect(page.page[0]._id).toBeTruthy();
   });
 
-  test("getArticlesByTagKey joins articleTags index", async () => {
+  test("getArticlesByTag joins articleTags index", async () => {
     const t = convexTest({ schema, modules });
     const tag = "topic";
-    const tagKey = tagKeyFromDisplayName(tag);
     const articleId = await t.run(async (ctx) =>
       ctx.db.insert("articles", {
         title: "T",
         slug: "slug-t",
-        urlKey: "slug-t",
+        shortId: "short001",
         content: "c",
         excerpt: "e",
         tags: [tag],
@@ -84,29 +76,28 @@ describe("articles queries", () => {
       await ctx.db.insert("articleTags", {
         articleId,
         tag,
-        tagKey,
         articleDate: "2025-05-03",
       });
     });
 
-    const rows = await t.query(api.articles.getArticlesByTagKey, { tagKey });
+    const rows = await t.query(api.articles.getArticlesByTag, { tag });
 
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({
       slug: "slug-t",
-      urlKey: "slug-t",
+      shortId: "short001",
       title: "T",
       tags: [tag],
     });
   });
 
-  test("backfillUrlKeys assigns urlKey and tagKey", async () => {
+  test("backfillShortIds assigns shortId", async () => {
     const t = convexTest({ schema, modules });
     const articleId = await t.run(async (ctx) =>
       ctx.db.insert("articles", {
         title: "Hello World",
         slug: "legacy-slug",
-        urlKey: "",
+        shortId: "",
         content: "c",
         tags: ["哲学"],
         date: "2025-05-01",
@@ -116,18 +107,15 @@ describe("articles queries", () => {
       await ctx.db.insert("articleTags", {
         articleId,
         tag: "哲学",
-        tagKey: "",
         articleDate: "2025-05-01",
       });
     });
 
-    const result = await t.mutation(internal.migrations.backfillUrlKeys, {});
+    const result = await t.mutation(internal.migrations.backfillShortIds, {});
     expect(result.articlesUpdated).toBe(1);
-    expect(result.tagRowsUpdated).toBe(1);
 
-    const article = await t.query(api.articles.getArticleByUrlKey, {
-      urlKey: "hello-world",
-    });
+    const article = await t.run(async (ctx) => ctx.db.get("articles", articleId));
+    expect(article?.shortId).toMatch(/^[a-zA-Z0-9]{8}$/);
     expect(article?.slug).toBe("legacy-slug");
   });
 });

@@ -20,14 +20,14 @@ vi.mock("next/link", () => ({
 }));
 
 describe("ArticlePreviewRow", () => {
-  test("renders article title, date, tags; emphasizes active tag badge", () => {
+  test("renders shortId + decorative slug in article href", () => {
     render(
       <ArticlePreviewRow
         article={{
           _id: "kh77",
           title: "Test title",
-          slug: "test-title",
-          urlKey: "test-title",
+          slug: "测试标题",
+          shortId: "a3f9k2X1",
           date: "2025-05-04",
           tags: ["topic", "other"],
         }}
@@ -40,7 +40,9 @@ describe("ArticlePreviewRow", () => {
     expect(screen.getByRole("link", { name: "topic" }).getAttribute("href")).toBe(
       "/tag/topic",
     );
-    expect(title.closest("a")?.getAttribute("href")).toBe("/articles/test-title");
+    expect(title.closest("a")?.getAttribute("href")).toBe(
+      "/articles/a3f9k2X1/%E6%B5%8B%E8%AF%95%E6%A0%87%E9%A2%98",
+    );
     expect(screen.getByRole("time")).toHaveAttribute("dateTime", "2025-05-04");
   });
 });

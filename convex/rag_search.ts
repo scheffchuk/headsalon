@@ -9,12 +9,11 @@ import {
   SearchResultValidator,
   type SearchResult,
 } from "./searchResult";
-import { slugifyForUrlKey } from "./lib/urlKey";
 
 // Type-safe filter definition following official docs
 type ArticleFilters = {
   slug: string;
-  urlKey: string;
+  shortId: string;
   date: string;
   creationTime: string;
   tag: string;
@@ -24,7 +23,7 @@ type ArticleFilters = {
 const rag = new RAG<ArticleFilters>(components.rag, {
   textEmbeddingModel: openai.embedding("text-embedding-3-large"),
   embeddingDimension: 3072,
-  filterNames: ["slug", "urlKey", "date", "creationTime", "tag", "title"],
+  filterNames: ["slug", "shortId", "date", "creationTime", "tag", "title"],
 });
 
 const ARTICLES_NAMESPACE = "articles";
@@ -118,8 +117,7 @@ function transformSearchResults(
       // Get title directly from filter values
       const title = (filters.get("title") as string) || "Untitled";
       const slug = (filters.get("slug") as string) || "";
-      const urlKey =
-        (filters.get("urlKey") as string) || slugifyForUrlKey(title) || slug;
+      const shortId = (filters.get("shortId") as string) || "";
 
       // Create relevant chunks (max 3 for semantic search)
       const relevantChunks =
@@ -133,7 +131,7 @@ function transformSearchResults(
         articleId: entry.key || entry.entryId,
         title,
         slug,
-        urlKey,
+        shortId,
         tags,
         date: (filters.get("date") as string) || "",
         score: result.score,
@@ -151,7 +149,7 @@ export const addArticleToRAG = action({
     articleId: v.string(),
     title: v.string(),
     slug: v.string(),
-    urlKey: v.string(),
+    shortId: v.string(),
     content: v.string(),
     excerpt: v.optional(v.string()),
     tags: v.array(v.string()),
@@ -163,7 +161,7 @@ export const addArticleToRAG = action({
   }),
   handler: async (
     ctx: ActionCtx,
-    { articleId, title, slug, urlKey, content, tags, date }
+    { articleId, title, slug, shortId, content, tags, date }
   ) => {
     try {
       const fullText = `${title}\n\n${content}`;
@@ -176,7 +174,7 @@ export const addArticleToRAG = action({
         importance: 1.0,
         filterValues: [
           { name: "slug", value: slug },
-          { name: "urlKey", value: urlKey },
+          { name: "shortId", value: shortId },
           { name: "date", value: date },
           { name: "creationTime", value: Date.now().toString() },
           { name: "tag", value: tagString },

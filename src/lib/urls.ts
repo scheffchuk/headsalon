@@ -1,15 +1,31 @@
-import { tagKeyFromDisplayName } from "@/lib/urlKey";
+/** Percent-encode decorative slug segment(s) for hrefs. */
+export function encodeDecorativeSlug(slug: string): string {
+  return encodeURIComponent(slug);
+}
 
-export function articleUrl(article: { urlKey: string }): string {
-  return `/articles/${article.urlKey}`;
+export function decodeDecorativeSlug(encoded: string): string {
+  return decodeURIComponent(encoded);
+}
+
+/** Canonical article URL: /articles/{shortId}/{decorative-slug} */
+export function articleUrl(article: { shortId: string; slug: string }): string {
+  return `/articles/${article.shortId}/${encodeDecorativeSlug(article.slug)}`;
+}
+
+/** True when optional catch-all slug tail matches the article decorative slug. */
+export function articleDecorativeMatches(
+  article: { slug: string },
+  slugSegments: string[] | undefined,
+): boolean {
+  if (!slugSegments?.length) {
+    return false;
+  }
+  const pathDecorative = decodeDecorativeSlug(slugSegments.join("/"));
+  return pathDecorative === article.slug;
 }
 
 export function tagUrl(tag: string): string {
-  return `/tag/${tagKeyFromDisplayName(tag)}`;
-}
-
-export function tagUrlFromKey(tagKey: string): string {
-  return `/tag/${tagKey}`;
+  return `/tag/${encodeURIComponent(tag)}`;
 }
 
 export function searchUrl(query: string, tag?: string | null): string {

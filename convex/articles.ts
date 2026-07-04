@@ -7,7 +7,7 @@ const articleListItemValidator = v.object({
   _id: v.id("articles"),
   title: v.string(),
   slug: v.string(),
-  urlKey: v.string(),
+  shortId: v.string(),
   date: v.string(),
   tags: v.array(v.string()),
 });
@@ -16,7 +16,7 @@ const articleByTagItemValidator = v.object({
   _id: v.id("articles"),
   title: v.string(),
   slug: v.string(),
-  urlKey: v.string(),
+  shortId: v.string(),
   excerpt: v.optional(v.string()),
   tags: v.array(v.string()),
   date: v.string(),
@@ -27,7 +27,7 @@ const fullArticleValidator = v.object({
   _creationTime: v.number(),
   title: v.string(),
   slug: v.string(),
-  urlKey: v.string(),
+  shortId: v.string(),
   content: v.string(),
   excerpt: v.optional(v.string()),
   tags: v.array(v.string()),
@@ -60,7 +60,7 @@ export const getArticles = query({
         _id: article._id,
         title: article.title,
         slug: article.slug,
-        urlKey: article.urlKey,
+        shortId: article.shortId,
         date: article.date,
         tags: article.tags,
       })),
@@ -68,41 +68,6 @@ export const getArticles = query({
   },
 });
 
-export const getArticlesByTagKey = query({
-  args: {
-    tagKey: v.string(),
-  },
-  returns: v.array(articleByTagItemValidator),
-  handler: async (ctx, { tagKey }) => {
-    if (!tagKey.trim()) {
-      return [];
-    }
-
-    const tagEntries = await ctx.db
-      .query("articleTags")
-      .withIndex("by_tagKey_and_articleDate", (q) => q.eq("tagKey", tagKey))
-      .order("desc")
-      .collect();
-
-    const articles = await Promise.all(
-      tagEntries.map((entry) => ctx.db.get("articles", entry.articleId)),
-    );
-
-    return articles
-      .filter((article): article is Doc<"articles"> => article !== null)
-      .map((article) => ({
-        _id: article._id,
-        title: article.title,
-        slug: article.slug,
-        urlKey: article.urlKey,
-        excerpt: article.excerpt,
-        tags: article.tags,
-        date: article.date,
-      }));
-  },
-});
-
-/** Legacy lookup by display tag name (redirect resolution). */
 export const getArticlesByTag = query({
   args: {
     tag: v.string(),
@@ -129,7 +94,7 @@ export const getArticlesByTag = query({
         _id: article._id,
         title: article.title,
         slug: article.slug,
-        urlKey: article.urlKey,
+        shortId: article.shortId,
         excerpt: article.excerpt,
         tags: article.tags,
         date: article.date,
@@ -137,22 +102,22 @@ export const getArticlesByTag = query({
   },
 });
 
-export const getArticleByUrlKey = query({
-  args: { urlKey: v.string() },
+export const getArticleByShortId = query({
+  args: { shortId: v.string() },
   returns: v.union(fullArticleValidator, v.null()),
-  handler: async (ctx, { urlKey }) => {
-    if (!urlKey.trim()) {
+  handler: async (ctx, { shortId }) => {
+    if (!shortId.trim()) {
       return null;
     }
 
     return await ctx.db
       .query("articles")
-      .withIndex("by_urlKey", (q) => q.eq("urlKey", urlKey))
+      .withIndex("by_shortId", (q) => q.eq("shortId", shortId))
       .unique();
   },
 });
 
-/** Legacy lookup by Unicode slug (redirect resolution). */
+/** Legacy lookup by decorative Unicode slug (redirect resolution). */
 export const getArticleBySlug = query({
   args: { slug: v.string() },
   returns: v.union(fullArticleValidator, v.null()),

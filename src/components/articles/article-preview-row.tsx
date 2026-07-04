@@ -10,7 +10,7 @@ export type ArticlePreview = {
   _id: string;
   title: string;
   slug: string;
-  urlKey: string;
+  shortId: string;
   date: string;
   tags: string[];
 };
@@ -19,7 +19,7 @@ export type ArticlePreviewRowProps = {
   article: ArticlePreview;
   /** When listing a tag index, this tag uses the primary badge variant. */
   emphasizedTag?: string;
-  /** When set, wraps the title link in ViewTransition (e.g. home `title-${urlKey}`). */
+  /** When set, wraps the title link in ViewTransition (e.g. home `title-${shortId}`). */
   titleViewTransitionName?: string;
   /** RAG search opens the **Article** in a new tab. */
   openArticleInNewTab?: boolean;
@@ -30,7 +30,7 @@ export function articlePreviewFromSearchResult(result: SearchResult): ArticlePre
     _id: result._id,
     title: result.title,
     slug: result.slug,
-    urlKey: result.urlKey,
+    shortId: result.shortId,
     date: result.date,
     tags: result.tags,
   };
@@ -44,7 +44,7 @@ export function ArticlePreviewRow({
 }: ArticlePreviewRowProps) {
   const titleLink = (
     <Link
-      href={articleUrl({ urlKey: article.urlKey })}
+      href={articleUrl({ shortId: article.shortId, slug: article.slug })}
       prefetch={true}
       {...(openArticleInNewTab
         ? { target: "_blank", rel: "noopener noreferrer" }

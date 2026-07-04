@@ -1,11 +1,30 @@
 import { v } from "convex/values";
-import { internalMutation } from "./_generated/server";
-import { nanoid } from "nanoid";
-import {
-  slugifyForUrlKey,
-  tagKeyFromDisplayName,
-  withCollisionSuffix,
-} from "./lib/urlKey";
+import { internalMutation, type MutationCtx } from "./_generated/server";
+import { generateShortId } from "./lib/shortId";
+
+async function allocateUniqueShortId(
+  ctx: MutationCtx,
+  used: Set<string>,
+): Promise<string> {
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const candidate = generateShortId();
+    if (used.has(candidate)) {
+      continue;
+    }
+
+    const existing = await ctx.db
+      .query("articles")
+      .withIndex("by_shortId", (q) => q.eq("shortId", candidate))
+      .unique();
+
+    if (!existing) {
+      used.add(candidate);
+      return candidate;
+    }
+  }
+
+  throw new Error("Failed to allocate unique shortId");
+}
 
 export const populateArticleTags = internalMutation({
   args: {},
@@ -27,7 +46,6 @@ export const populateArticleTags = internalMutation({
           await ctx.db.insert("articleTags", {
             articleId: article._id,
             tag,
-            tagKey: tagKeyFromDisplayName(tag),
             articleDate: article.date,
           });
         }
@@ -40,44 +58,29 @@ export const populateArticleTags = internalMutation({
   },
 });
 
-export const backfillUrlKeys = internalMutation({
+export const backfillShortIds = internalMutation({
   args: {},
   returns: v.object({
     articlesUpdated: v.number(),
-    tagRowsUpdated: v.number(),
     tagRowsInserted: v.number(),
   }),
   handler: async (ctx) => {
     const articles = await ctx.db.query("articles").collect();
-    const usedUrlKeys = new Set<string>();
+    const usedShortIds = new Set<string>();
     let articlesUpdated = 0;
 
     for (const article of articles) {
-      let urlKey = article.urlKey?.trim();
-
-      if (!urlKey) {
-        urlKey = slugifyForUrlKey(article.title);
-        while (usedUrlKeys.has(urlKey)) {
-          urlKey = withCollisionSuffix(slugifyForUrlKey(article.title), nanoid(6));
-        }
-
-        const existing = await ctx.db
-          .query("articles")
-          .withIndex("by_urlKey", (q) => q.eq("urlKey", urlKey))
-          .unique();
-
-        if (existing && existing._id !== article._id) {
-          urlKey = withCollisionSuffix(slugifyForUrlKey(article.title), nanoid(6));
-        }
-
-        await ctx.db.patch("articles", article._id, { urlKey });
-        articlesUpdated++;
+      const existingShortId = article.shortId?.trim();
+      if (existingShortId) {
+        usedShortIds.add(existingShortId);
+        continue;
       }
 
-      usedUrlKeys.add(urlKey);
+      const shortId = await allocateUniqueShortId(ctx, usedShortIds);
+      await ctx.db.patch("articles", article._id, { shortId });
+      articlesUpdated++;
     }
 
-    let tagRowsUpdated = 0;
     let tagRowsInserted = 0;
 
     for (const article of articles) {
@@ -94,27 +97,17 @@ export const backfillUrlKeys = internalMutation({
           await ctx.db.insert("articleTags", {
             articleId: article._id,
             tag,
-            tagKey: tagKeyFromDisplayName(tag),
             articleDate: refreshed.date,
           });
           tagRowsInserted++;
-        }
-        continue;
-      }
-
-      for (const row of existingTagRows) {
-        const tagKey = tagKeyFromDisplayName(row.tag);
-        if (row.tagKey !== tagKey) {
-          await ctx.db.patch("articleTags", row._id, { tagKey });
-          tagRowsUpdated++;
         }
       }
     }
 
     console.log(
-      `backfillUrlKeys: ${articlesUpdated} articles, ${tagRowsUpdated} tag patches, ${tagRowsInserted} tag inserts`,
+      `backfillShortIds: ${articlesUpdated} articles, ${tagRowsInserted} tag inserts`,
     );
 
-    return { articlesUpdated, tagRowsUpdated, tagRowsInserted };
+    return { articlesUpdated, tagRowsInserted };
   },
 });
