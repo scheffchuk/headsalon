@@ -6,54 +6,33 @@ import {
   getArticleByShortId,
   getArticleBySlug,
 } from "@/lib/convex-cache";
-import {
-  articleDecorativeMatches,
-  articleUrl,
-} from "@/lib/urls";
-import { Article } from "../article";
-import { ArticleWithScrollProgress } from "../article-with-scroll-progress";
+import { articleUrl } from "@/lib/urls";
+import { Article } from "./article";
+import { ArticleWithScrollProgress } from "./article-with-scroll-progress";
 import { ArticleSkeleton } from "@/components/article/article-skeleton";
 
-type ArticleRouteParams = {
-  shortId: string;
-  slug?: string[];
-};
-
-async function resolveArticle(shortId: string) {
-  const byShortId = await getArticleByShortId(shortId);
+async function resolveArticle(param: string) {
+  const byShortId = await getArticleByShortId(param);
   if (byShortId) {
     return { article: byShortId, legacyRedirect: null as string | null };
   }
 
-  const bySlug = await getArticleBySlug(shortId);
+  const bySlug = await getArticleBySlug(param);
   if (bySlug) {
     return {
       article: bySlug,
-      legacyRedirect: articleUrl({
-        shortId: bySlug.shortId,
-        slug: bySlug.slug,
-      }),
+      legacyRedirect: articleUrl({ shortId: bySlug.shortId }),
     };
   }
 
   return { article: null, legacyRedirect: null as string | null };
 }
 
-function canonicalRedirect(
-  article: { shortId: string; slug: string },
-  slugSegments: string[] | undefined,
-): string | null {
-  if (!articleDecorativeMatches(article, slugSegments)) {
-    return articleUrl(article);
-  }
-  return null;
-}
-
 export async function generateMetadata(
-  { params }: PageProps<"/articles/[shortId]/[[...slug]]">,
+  { params }: PageProps<"/articles/[shortId]">,
   _parent: ResolvingMetadata,
 ): Promise<Metadata> {
-  const { shortId, slug } = await params;
+  const { shortId } = await params;
   const { article, legacyRedirect } = await resolveArticle(shortId);
 
   if (legacyRedirect) {
@@ -65,10 +44,6 @@ export async function generateMetadata(
       title: "文章未找到",
       description: "所请求的文章不存在",
     };
-  }
-
-  if (canonicalRedirect(article, slug)) {
-    return {};
   }
 
   const description =
@@ -106,19 +81,19 @@ export async function generateMetadata(
 
 export default function ArticlePage({
   params,
-}: PageProps<"/articles/[shortId]/[[...slug]]">) {
+}: PageProps<"/articles/[shortId]">) {
   return (
     <ViewTransition>
       <Suspense fallback={<ArticleSkeleton />}>
-        {params.then(({ shortId, slug }) => (
-          <ArticleContent shortId={shortId} slug={slug} />
+        {params.then(({ shortId }) => (
+          <ArticleContent shortId={shortId} />
         ))}
       </Suspense>
     </ViewTransition>
   );
 }
 
-async function ArticleContent({ shortId, slug }: ArticleRouteParams) {
+async function ArticleContent({ shortId }: { shortId: string }) {
   const { article, legacyRedirect } = await resolveArticle(shortId);
 
   if (legacyRedirect) {
@@ -127,11 +102,6 @@ async function ArticleContent({ shortId, slug }: ArticleRouteParams) {
 
   if (!article) {
     notFound();
-  }
-
-  const decorativeRedirect = canonicalRedirect(article, slug);
-  if (decorativeRedirect) {
-    permanentRedirect(decorativeRedirect);
   }
 
   return (

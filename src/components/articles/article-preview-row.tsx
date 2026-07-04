@@ -44,7 +44,7 @@ export function ArticlePreviewRow({
 }: ArticlePreviewRowProps) {
   const titleLink = (
     <Link
-      href={articleUrl({ shortId: article.shortId, slug: article.slug })}
+      href={articleUrl({ shortId: article.shortId })}
       prefetch={true}
       {...(openArticleInNewTab
         ? { target: "_blank", rel: "noopener noreferrer" }

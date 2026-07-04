@@ -40,9 +40,7 @@ describe("ArticlePreviewRow", () => {
     expect(screen.getByRole("link", { name: "topic" }).getAttribute("href")).toBe(
       "/tag/topic",
     );
-    expect(title.closest("a")?.getAttribute("href")).toBe(
-      "/articles/a3f9k2X1/%E6%B5%8B%E8%AF%95%E6%A0%87%E9%A2%98",
-    );
+    expect(title.closest("a")?.getAttribute("href")).toBe("/articles/a3f9k2X1");
     expect(screen.getByRole("time")).toHaveAttribute("dateTime", "2025-05-04");
   });
 });

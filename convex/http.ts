@@ -36,9 +36,9 @@ Tool usage:
 - Synthesize retrieved content into coherent response; don't just quote
 - If articles lack relevant info: "Sorry, I can't find that information in the blog articles."
 
-Link format: [Article Title](/articles/<shortId>/<decorative-slug>)
-Example: [食物与人类6向下开拓](/articles/a3f9k2X1/%E9%A3%9F%E7%89%A9%E4%B8%8E%E4%BA%BA%E7%B1%BB6%E5%90%91%E4%B8%8B%E5%BC%80%E6%8B%93)
-Use shortId and slug from tool results. Only shortId is required for lookup; the slug tail is decorative.
+Link format: [Article Title](/articles/<shortId>)
+Example: [食物与人类6向下开拓](/articles/a3f9k2X1)
+Use shortId from tool results only.
 `;
 
 http.route({
