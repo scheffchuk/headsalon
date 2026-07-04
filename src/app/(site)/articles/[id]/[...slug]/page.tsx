@@ -1,9 +1,15 @@
+import { Suspense } from "react";
 import { permanentRedirect } from "next/navigation";
 
 /** Legacy URLs with extra path segments → canonical /articles/{id}. */
-export default async function LegacyArticlePathRedirect({
+export default function LegacyArticlePathRedirect({
   params,
 }: PageProps<"/articles/[id]/[...slug]">) {
-  const { id } = await params;
-  permanentRedirect(`/articles/${id}`);
+  return (
+    <Suspense fallback={null}>
+      {params.then(({ id }) => {
+        permanentRedirect(`/articles/${id}`);
+      })}
+    </Suspense>
+  );
 }
