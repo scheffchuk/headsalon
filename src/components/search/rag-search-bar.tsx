@@ -65,8 +65,11 @@ function loadSearchHistoryList(): string[] {
 export type RagSearchBarProps = {
   className?: string;
   placeholder?: string;
+  /** Controlled input value (URL-synced query). */
+  value?: string;
   onSearch?: (query: string) => void;
   onQueryChange?: (query: string) => void;
+  onFocus?: () => void;
   searchHistory?: boolean;
   maxHistoryItems?: number;
 };
@@ -74,12 +77,22 @@ export type RagSearchBarProps = {
 export function RagSearchBar({
   className,
   placeholder = "Search…",
+  value,
   onSearch,
   onQueryChange,
+  onFocus,
   searchHistory = false,
   maxHistoryItems = 10,
 }: RagSearchBarProps) {
-  const [query, setQuery] = useState("");
+  const [internalQuery, setInternalQuery] = useState(value ?? "");
+  const query = value !== undefined ? value : internalQuery;
+  const setQuery = (next: string) => {
+    if (value === undefined) {
+      setInternalQuery(next);
+    }
+    onQueryChange?.(next);
+  };
+
   const [showDropdown, setShowDropdown] = useState(false);
   const [historyList, setHistoryList] = useState<string[]>(() =>
     searchHistory ? loadSearchHistoryList() : [],
@@ -158,9 +171,7 @@ export function RagSearchBar({
       : historyList.filter((h) => h !== trimmedQuery);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setQuery(value);
-    onQueryChange?.(value);
+    setQuery(e.target.value);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -185,7 +196,6 @@ export function RagSearchBar({
         if (selectedIndex >= 0 && items[selectedIndex]) {
           const picked = items[selectedIndex];
           setQuery(picked);
-          onQueryChange?.(picked);
           runSearch(picked);
         } else {
           runSearch(query);
@@ -203,7 +213,6 @@ export function RagSearchBar({
 
   const clearQuery = () => {
     setQuery("");
-    onQueryChange?.("");
     setShowDropdown(false);
     setSelectedIndex(-1);
     inputRef.current?.focus();
@@ -220,7 +229,10 @@ export function RagSearchBar({
           value={query}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          onFocus={() => setShowDropdown(true)}
+          onFocus={() => {
+            setShowDropdown(true);
+            onFocus?.();
+          }}
           placeholder={placeholder}
           className={cn(
             "transition-all duration-200 rounded-full",
@@ -280,7 +292,6 @@ export function RagSearchBar({
                 type="button"
                 onClick={() => {
                   setQuery(historyItem);
-                  onQueryChange?.(historyItem);
                   runSearch(historyItem);
                 }}
                 className={cn(

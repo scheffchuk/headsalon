@@ -24,7 +24,7 @@ export function ArticleList() {
       <div className="flex flex-col space-y-6">
         {results.map((article) => (
           <ArticlePreviewRow
-            key={article.slug}
+            key={article._id}
             article={{
               _id: article._id,
               title: article.title,
@@ -32,7 +32,7 @@ export function ArticleList() {
               date: article.date,
               tags: article.tags,
             }}
-            titleViewTransitionName={`title-${article.slug}`}
+            titleViewTransitionName={`title-${article._id}`}
           />
         ))}
       </div>

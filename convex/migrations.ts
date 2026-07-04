@@ -1,37 +1,33 @@
 import { v } from "convex/values";
 import { internalMutation } from "./_generated/server";
 
-// Migration to populate articleTags table from existing articles
-export const populateArticleTags = internalMutation({
+/** Populate articleTags join rows for articles missing them. */
+export const backfillArticleTags = internalMutation({
   args: {},
-  returns: v.object({ processedArticles: v.number() }),
+  returns: v.object({ tagRowsInserted: v.number() }),
   handler: async (ctx) => {
-    console.log("Starting articleTags migration...");
-
     const articles = await ctx.db.query("articles").collect();
-    let processedCount = 0;
+    let tagRowsInserted = 0;
 
     for (const article of articles) {
-      // Check if tags already exist for this article
-      const existingTags = await ctx.db
+      const existingTagRows = await ctx.db
         .query("articleTags")
         .withIndex("by_articleId", (q) => q.eq("articleId", article._id))
         .collect();
 
-      if (existingTags.length === 0) {
-        // Create articleTags entries
+      if (existingTagRows.length === 0) {
         for (const tag of article.tags) {
           await ctx.db.insert("articleTags", {
             articleId: article._id,
-            tag: tag,
+            tag,
             articleDate: article.date,
           });
+          tagRowsInserted++;
         }
-        processedCount++;
       }
     }
 
-    console.log(`Migration completed. Processed ${processedCount} articles.`);
-    return { processedArticles: processedCount };
+    console.log(`backfillArticleTags: ${tagRowsInserted} tag inserts`);
+    return { tagRowsInserted };
   },
 });

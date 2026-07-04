@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import { ViewTransition } from "react";
 import type { Metadata, ResolvingMetadata } from "next";
+import { notFound } from "next/navigation";
 import { getArticlesByTag } from "@/lib/convex-cache";
+import { tagUrl } from "@/lib/urls";
 import { ArticlePreviewRow } from "@/components/articles/article-preview-row";
 
 type ArticleForTag = {
@@ -14,13 +16,11 @@ type ArticleForTag = {
 };
 
 export async function generateMetadata(
-  { params }: PageProps<'/tag/[tag]'>,
-  parent: ResolvingMetadata
+  { params }: PageProps<"/tag/[tag]">,
+  _parent: ResolvingMetadata,
 ): Promise<Metadata> {
-  const { tag } = await params;
-  const decodedTag = decodeURIComponent(tag);
-
-  // Fetch articles for this tag to generate metadata
+  const { tag: encodedTag } = await params;
+  const decodedTag = decodeURIComponent(encodedTag);
   const articles = await getArticlesByTag(decodedTag);
 
   const articleCount = articles.length;
@@ -29,17 +29,23 @@ export async function generateMetadata(
       ? `浏览所有标记为 "${decodedTag}" 的文章，共 ${articleCount} 篇文章`
       : `标记为 "${decodedTag}" 的文章`;
 
+  const canonical = tagUrl(decodedTag);
+
   return {
     title: {
       absolute: `标签: ${decodedTag}`,
     },
     description,
     keywords: `${decodedTag}, 标签, 文章分类`,
+    alternates: {
+      canonical,
+    },
     openGraph: {
       title: `标签: ${decodedTag}`,
       description,
       type: "website",
       siteName: "HeadSalon",
+      url: canonical,
     },
     twitter: {
       card: "summary",
@@ -49,23 +55,19 @@ export async function generateMetadata(
   };
 }
 
-export default function TagPage({ params }: PageProps<'/tag/[tag]'>) {
+export default function TagPage({ params }: PageProps<"/tag/[tag]">) {
   return (
     <ViewTransition>
       <div className="mx-auto mt-16 pb-8">
-        {/* Header */}
         <header className="mb-8">
           <Suspense
             fallback={
-                <h1 className="text-3xl font-bold text-foreground mb-2">
-                  标签：
-                </h1>
+              <h1 className="text-3xl font-bold text-foreground mb-2">标签：</h1>
             }
           >
-            {
-              params.then(({tag}) => (
-              <TagPageContent tag={tag} />))
-            }
+            {params.then(({ tag }) => (
+              <TagPageContent encodedTag={tag} />
+            ))}
           </Suspense>
         </header>
       </div>
@@ -73,39 +75,37 @@ export default function TagPage({ params }: PageProps<'/tag/[tag]'>) {
   );
 }
 
-async function TagPageContent({ tag }: { tag: string }) {
-  const decodedTag = decodeURIComponent(tag);
+async function TagPageContent({ encodedTag }: { encodedTag: string }) {
+  const decodedTag = decodeURIComponent(encodedTag);
   const articles = await getArticlesByTag(decodedTag);
+
+  if (!articles.length) {
+    notFound();
+  }
 
   return (
     <>
-      <h1 className="text-3xl font-bold text-foreground mb-2">标签：{decodedTag}</h1>
+      <h1 className="text-3xl font-bold text-foreground mb-2">
+        标签：{decodedTag}
+      </h1>
       <p className="text-muted-foreground">找到 {articles.length} 篇相关文章</p>
-      <TagArticlesList articles={articles} tag={decodedTag} />
+      <TagArticlesList articles={articles} displayTag={decodedTag} />
     </>
   );
 }
 
 function TagArticlesList({
   articles,
-  tag,
+  displayTag,
 }: {
   articles: ArticleForTag[];
-  tag: string;
+  displayTag: string;
 }) {
-  if (!articles.length) {
-    return (
-      <div className="text-center py-16">
-        <p className="text-muted-foreground mb-4">该标签下暂无文章</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8">
       {articles.map((article) => (
         <ArticlePreviewRow
-          key={article.slug}
+          key={article._id}
           article={{
             _id: article._id,
             title: article.title,
@@ -113,7 +113,7 @@ function TagArticlesList({
             date: article.date,
             tags: article.tags,
           }}
-          emphasizedTag={tag}
+          emphasizedTag={displayTag}
         />
       ))}
     </div>

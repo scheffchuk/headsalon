@@ -115,6 +115,8 @@ function transformSearchResults(
 
       // Get title directly from filter values
       const title = (filters.get("title") as string) || "Untitled";
+      const slug = (filters.get("slug") as string) || "";
+      const articleId = entry.key || entry.entryId;
 
       // Create relevant chunks (max 3 for semantic search)
       const relevantChunks =
@@ -124,10 +126,10 @@ function transformSearchResults(
         })) || [];
 
       return {
-        _id: entry.key || entry.entryId,
-        articleId: entry.key || entry.entryId,
+        _id: articleId,
+        articleId,
         title,
-        slug: (filters.get("slug") as string) || "",
+        slug,
         tags,
         date: (filters.get("date") as string) || "",
         score: result.score,

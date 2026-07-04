@@ -10,7 +10,6 @@ const schema = defineSchema({
     tags: v.array(v.string()),
     date: v.string(),
   })
-    // Basic indexes
     .index("by_slug", ["slug"])
     .index("by_date", ["date"])
     .index("by_tags", ["tags"]),

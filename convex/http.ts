@@ -36,8 +36,8 @@ Tool usage:
 - Synthesize retrieved content into coherent response; don't just quote
 - If articles lack relevant info: "Sorry, I can't find that information in the blog articles."
 
-Link format: [Article Title](/articles/<article-slug>)
-Example: [食物与人类6向下开拓](/articles/食物与人类6向下开拓)
+Link format: [Article Title](/articles/<id>)
+Example: use the id field from tool results (Convex document id).
 `;
 
 http.route({

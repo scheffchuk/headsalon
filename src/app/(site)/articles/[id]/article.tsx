@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import { tagUrl } from "@/lib/urls";
 import { BackButton } from "./back-button";
 
 type Article = {
@@ -47,7 +48,7 @@ export function Article({ article }: ArticleProps) {
         {article.tags?.length ? (
           <div className="flex flex-wrap gap-2 mt-4">
             {article.tags.map((tag) => (
-              <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}>
+              <Link key={tag} href={tagUrl(tag)}>
                 <Badge
                   variant="secondary"
                   className="hover:bg-primary hover:text-primary-foreground transition-colors"

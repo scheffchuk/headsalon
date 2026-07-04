@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAction } from "convex/react";
+import { parseAsString, useQueryStates } from "nuqs";
 import { api } from "../../../convex/_generated/api";
 import type { SearchResult } from "@convex/searchResult";
 import { RagSearchBar } from "@/components/search/rag-search-bar";
@@ -9,49 +10,71 @@ import { SearchResults } from "@/components/search/search-results";
 
 export function RagSearchExperience() {
   const searchAction = useAction(api.rag_search.searchArticlesRAG);
-  const [query, setQuery] = useState("");
+  const [{ q: urlQuery, tag: tagFilter }, setSearchParams] = useQueryStates(
+    {
+      q: parseAsString.withDefault(""),
+      tag: parseAsString.withDefault(""),
+    },
+    { history: "push", shallow: false },
+  );
+
+  const [draftQuery, setDraftQuery] = useState(urlQuery);
+  const [isEditing, setIsEditing] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const lastQueriedRef = useRef("");
-  /** Latest input from the bar; used to drop stale responses if the user edits mid-flight. */
-  const queryInputRef = useRef("");
 
-  const handleQueryChange = (value: string) => {
-    setQuery(value);
-    queryInputRef.current = value;
-    if (value.trim() !== lastQueriedRef.current) {
-      setResults([]);
-    }
-  };
+  const inputValue = isEditing ? draftQuery : urlQuery;
 
-  const handleSearch = async (searchQuery: string) => {
-    const trimmed = searchQuery.trim();
-    if (trimmed === "") {
+  useEffect(() => {
+    const trimmed = urlQuery.trim();
+    const tag = tagFilter.trim();
+
+    if (!trimmed) {
       setResults([]);
       setIsLoading(false);
       lastQueriedRef.current = "";
       return;
     }
 
+    let cancelled = false;
     lastQueriedRef.current = trimmed;
     setIsLoading(true);
 
-    try {
-      const data = await searchAction({ query: trimmed, limit: 30 });
-      if (
-        lastQueriedRef.current === trimmed &&
-        queryInputRef.current.trim() === trimmed
-      ) {
-        setResults(Array.isArray(data) ? data : []);
+    void (async () => {
+      try {
+        const data = await searchAction({
+          query: trimmed,
+          limit: 30,
+          ...(tag ? { tagFilter: tag } : {}),
+        });
+        if (!cancelled && lastQueriedRef.current === trimmed) {
+          setResults(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error("Search failed:", err);
+        if (!cancelled && lastQueriedRef.current === trimmed) {
+          setResults([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
-    } catch (err) {
-      console.error("Search failed:", err);
-      if (queryInputRef.current.trim() === trimmed) {
-        setResults([]);
-      }
-    } finally {
-      setIsLoading(false);
-    }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [urlQuery, tagFilter, searchAction]);
+
+  const handleSearch = (searchQuery: string) => {
+    const trimmed = searchQuery.trim();
+    setIsEditing(false);
+    void setSearchParams({
+      q: trimmed || null,
+      tag: tagFilter.trim() || null,
+    });
   };
 
   return (
@@ -61,13 +84,25 @@ export function RagSearchExperience() {
         <RagSearchBar
           placeholder=""
           searchHistory={true}
+          value={inputValue}
           onSearch={handleSearch}
-          onQueryChange={handleQueryChange}
+          onQueryChange={(next) => {
+            setIsEditing(true);
+            setDraftQuery(next);
+          }}
+          onFocus={() => {
+            setIsEditing(true);
+            setDraftQuery(urlQuery);
+          }}
         />
       </header>
 
       <main>
-        <SearchResults query={query} results={results} isLoading={isLoading} />
+        <SearchResults
+          query={urlQuery}
+          results={results}
+          isLoading={isLoading}
+        />
       </main>
     </div>
   );
