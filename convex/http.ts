@@ -50,7 +50,7 @@ http.route({
     const lastMessages = messages.slice(-10);
 
     const result = streamText({
-      model: "google/gemini-3-flash",
+      model: "xai/grok-4.5",
       system: systemPrompt,
       messages: await convertToModelMessages(lastMessages),
       stopWhen: stepCountIs(5),
