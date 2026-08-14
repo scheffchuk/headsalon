@@ -4,7 +4,7 @@ import { describe, expect, test } from "vitest";
 import { api, internal } from "./_generated/api";
 import schema from "./schema";
 
-const modules = import.meta.glob<{ default?: unknown }>(
+const modules = import.meta.glob(
   ["./schema.ts", "./articles.ts", "./migrations.ts", "./lib/**/*.ts", "./_generated/**/*"],
   {
     eager: false,
