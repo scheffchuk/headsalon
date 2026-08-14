@@ -25,13 +25,7 @@ export function ArticleList() {
         {results.map((article) => (
           <ArticlePreviewRow
             key={article._id}
-            article={{
-              _id: article._id,
-              title: article.title,
-              slug: article.slug,
-              date: article.date,
-              tags: article.tags,
-            }}
+            article={article}
             titleViewTransitionName={`title-${article._id}`}
           />
         ))}

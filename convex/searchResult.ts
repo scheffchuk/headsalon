@@ -23,3 +23,9 @@ export const SearchResultValidator = v.object({
 });
 
 export type SearchResult = Infer<typeof SearchResultValidator>;
+
+/** List-card fields shared by chronological index, tag index, and RAG search. */
+export type ArticlePreview = Pick<
+  SearchResult,
+  "_id" | "title" | "slug" | "date" | "tags"
+>;

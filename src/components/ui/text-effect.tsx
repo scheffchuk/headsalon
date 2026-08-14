@@ -12,37 +12,11 @@ import type {
 } from 'motion/react'
 import React from 'react';
 
-export type PresetType = 'blur' | 'fade-in-blur' | 'scale' | 'fade' | 'slide';
-
-export type PerType = 'word' | 'char' | 'line';
-
-export type TextEffectProps = {
-  children: string;
-  per?: PerType;
-  as?: keyof React.JSX.IntrinsicElements;
-  variants?: {
-    container?: Variants;
-    item?: Variants;
-  };
-  className?: string;
-  preset?: PresetType;
-  delay?: number;
-  speedReveal?: number;
-  speedSegment?: number;
-  trigger?: boolean;
-  onAnimationComplete?: () => void;
-  onAnimationStart?: () => void;
-  segmentWrapperClassName?: string;
-  containerTransition?: Transition;
-  segmentTransition?: Transition;
-  style?: React.CSSProperties;
-};
-
-const defaultStaggerTimes: Record<PerType, number> = {
+const defaultStaggerTimes = {
   char: 0.03,
   word: 0.05,
   line: 0.1,
-};
+} as const;
 
 const defaultContainerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -65,10 +39,7 @@ const defaultItemVariants: Variants = {
   exit: { opacity: 0 },
 };
 
-const presetVariants: Record<
-  PresetType,
-  { container: Variants; item: Variants }
-> = {
+const presetVariants = {
   blur: {
     container: defaultContainerVariants,
     item: {
@@ -114,7 +85,7 @@ const presetVariants: Record<
 const AnimationComponent: React.FC<{
   segment: string;
   variants: Variants;
-  per: 'line' | 'word' | 'char';
+  per: keyof typeof defaultStaggerTimes;
   segmentWrapperClassName?: string;
 }> = React.memo(({ segment, variants, per, segmentWrapperClassName }) => {
   const content =
@@ -160,7 +131,7 @@ const AnimationComponent: React.FC<{
 
 AnimationComponent.displayName = 'AnimationComponent';
 
-const splitText = (text: string, per: PerType) => {
+const splitText = (text: string, per: keyof typeof defaultStaggerTimes) => {
   if (per === 'line') return text.split('\n');
   return text.split(/(\s+)/);
 };
@@ -223,7 +194,27 @@ export function TextEffect({
   containerTransition,
   segmentTransition,
   style,
-}: TextEffectProps) {
+}: {
+  children: string;
+  per?: keyof typeof defaultStaggerTimes;
+  as?: keyof React.JSX.IntrinsicElements;
+  variants?: {
+    container?: Variants;
+    item?: Variants;
+  };
+  className?: string;
+  preset?: keyof typeof presetVariants;
+  delay?: number;
+  speedReveal?: number;
+  speedSegment?: number;
+  trigger?: boolean;
+  onAnimationComplete?: () => void;
+  onAnimationStart?: () => void;
+  segmentWrapperClassName?: string;
+  containerTransition?: Transition;
+  segmentTransition?: Transition;
+  style?: React.CSSProperties;
+}) {
   const segments = splitText(children, per);
   const MotionTag = motion[as as keyof typeof motion] as typeof motion.div;
 

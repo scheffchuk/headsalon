@@ -1,21 +1,16 @@
-import {
-  ArticlePreviewRow,
-  articlePreviewFromSearchResult,
-} from "@/components/articles/article-preview-row";
+import { ArticlePreviewRow } from "@/components/articles/article-preview-row";
 import { SearchStates } from "./search-states";
 import type { SearchResult } from "@convex/searchResult";
-
-type SearchResultsProps = {
-  query: string;
-  results: SearchResult[];
-  isLoading: boolean;
-};
 
 export function SearchResults({
   query,
   results,
   isLoading,
-}: SearchResultsProps) {
+}: {
+  query: string;
+  results: SearchResult[];
+  isLoading: boolean;
+}) {
   if (!query.trim()) {
     return <SearchStates state="empty" />;
   }
@@ -29,7 +24,7 @@ export function SearchResults({
       {results.map((hit) => (
         <ArticlePreviewRow
           key={hit._id}
-          article={articlePreviewFromSearchResult(hit)}
+          article={hit}
           titleViewTransitionName={`title-${hit._id}`}
           openArticleInNewTab
         />

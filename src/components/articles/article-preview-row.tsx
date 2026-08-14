@@ -3,40 +3,19 @@ import { ViewTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { articleUrl, tagUrl } from "@/lib/urls";
-import type { SearchResult } from "@convex/searchResult";
-
-/** Fields required to render one **Article** row (chronological index, tag index, or RAG search). */
-export type ArticlePreview = {
-  _id: string;
-  title: string;
-  slug: string;
-  date: string;
-  tags: string[];
-};
-
-export type ArticlePreviewRowProps = {
-  article: ArticlePreview;
-  emphasizedTag?: string;
-  titleViewTransitionName?: string;
-  openArticleInNewTab?: boolean;
-};
-
-export function articlePreviewFromSearchResult(result: SearchResult): ArticlePreview {
-  return {
-    _id: result._id,
-    title: result.title,
-    slug: result.slug,
-    date: result.date,
-    tags: result.tags,
-  };
-}
+import type { ArticlePreview } from "@convex/searchResult";
 
 export function ArticlePreviewRow({
   article,
   emphasizedTag,
   titleViewTransitionName,
   openArticleInNewTab,
-}: ArticlePreviewRowProps) {
+}: {
+  article: ArticlePreview;
+  emphasizedTag?: string;
+  titleViewTransitionName?: string;
+  openArticleInNewTab?: boolean;
+}) {
   const titleLink = (
     <Link
       href={articleUrl({ _id: article._id })}

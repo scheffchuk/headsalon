@@ -7,15 +7,6 @@ import { getArticlesByTag } from "@/lib/convex-cache";
 import { tagUrl } from "@/lib/urls";
 import { ArticlePreviewRow } from "@/components/articles/article-preview-row";
 
-type ArticleForTag = {
-  _id: string;
-  title: string;
-  slug: string;
-  excerpt?: string;
-  tags: string[];
-  date: string;
-};
-
 async function getTagMetadata(tag: string): Promise<Metadata> {
   "use cache";
   cacheLife("hours");
@@ -103,7 +94,7 @@ function TagArticlesList({
   articles,
   displayTag,
 }: {
-  articles: ArticleForTag[];
+  articles: Awaited<ReturnType<typeof getArticlesByTag>>;
   displayTag: string;
 }) {
   return (
@@ -111,13 +102,7 @@ function TagArticlesList({
       {articles.map((article) => (
         <ArticlePreviewRow
           key={article._id}
-          article={{
-            _id: article._id,
-            title: article.title,
-            slug: article.slug,
-            date: article.date,
-            tags: article.tags,
-          }}
+          article={article}
           emphasizedTag={displayTag}
         />
       ))}

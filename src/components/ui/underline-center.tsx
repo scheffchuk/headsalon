@@ -4,42 +4,6 @@ import { ElementType, useEffect, useRef, useMemo } from "react";
 import { motion, ValueAnimationTransition } from "motion/react";
 import { cn } from "@/lib/utils";
 
-interface UnderlineProps {
-  /**
-   * The content to be displayed and animated
-   */
-  children: React.ReactNode;
-
-  /**
-   * HTML Tag to render the component as
-   * @default span
-   */
-  as?: ElementType;
-
-  /**
-   * Optional class name for styling
-   */
-  className?: string;
-
-  /**
-   * Animation transition configuration
-   * @default { duration: 0.2, ease: "easeInOut" }
-   */
-  transition?: ValueAnimationTransition;
-
-  /**
-   * Height of the underline as a ratio of font size
-   * @default 0.1
-   */
-  underlineHeightRatio?: number;
-
-  /**
-   * Padding of the underline as a ratio of font size
-   * @default 0.01
-   */
-  underlinePaddingRatio?: number;
-}
-
 const CenterUnderline = ({
   children,
   as,
@@ -48,7 +12,14 @@ const CenterUnderline = ({
   underlineHeightRatio = 0.1,
   underlinePaddingRatio = 0.01,
   ...props
-}: UnderlineProps) => {
+}: {
+  children: React.ReactNode;
+  as?: ElementType;
+  className?: string;
+  transition?: ValueAnimationTransition;
+  underlineHeightRatio?: number;
+  underlinePaddingRatio?: number;
+}) => {
   const textRef = useRef<HTMLSpanElement>(null);
   const MotionComponent = useMemo(() => motion.create(as ?? "span"), [as]);
 
