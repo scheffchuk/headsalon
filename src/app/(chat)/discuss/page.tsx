@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { isAiChatEnabled } from "@/lib/ai-chat-enabled";
 import { DiscussChatClient } from "./discuss-chat-client";
 import ChatMaintenance from "./chat-maintenance";
@@ -7,5 +8,15 @@ export default function DiscussPage() {
     return <ChatMaintenance />;
   }
 
-  return <DiscussChatClient />;
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-1 items-center justify-center">
+          <div className="text-muted-foreground">Loading chat...</div>
+        </div>
+      }
+    >
+      <DiscussChatClient />
+    </Suspense>
+  );
 }

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { ViewTransition } from "react";
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
+import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
 import { getArticlesByTag } from "@/lib/convex-cache";
 import { tagUrl } from "@/lib/urls";
@@ -15,33 +16,30 @@ type ArticleForTag = {
   date: string;
 };
 
-export async function generateMetadata(
-  { params }: PageProps<"/tag/[tag]">,
-  _parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const { tag: encodedTag } = await params;
-  const decodedTag = decodeURIComponent(encodedTag);
-  const articles = await getArticlesByTag(decodedTag);
+async function getTagMetadata(tag: string): Promise<Metadata> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("articles", `tag-${tag}`);
 
+  const articles = await getArticlesByTag(tag);
   const articleCount = articles.length;
   const description =
     articleCount > 0
-      ? `浏览所有标记为 "${decodedTag}" 的文章，共 ${articleCount} 篇文章`
-      : `标记为 "${decodedTag}" 的文章`;
-
-  const canonical = tagUrl(decodedTag);
+      ? `浏览所有标记为 "${tag}" 的文章，共 ${articleCount} 篇文章`
+      : `标记为 "${tag}" 的文章`;
+  const canonical = tagUrl(tag);
 
   return {
     title: {
-      absolute: `标签: ${decodedTag}`,
+      absolute: `标签: ${tag}`,
     },
     description,
-    keywords: `${decodedTag}, 标签, 文章分类`,
+    keywords: `${tag}, 标签, 文章分类`,
     alternates: {
       canonical,
     },
     openGraph: {
-      title: `标签: ${decodedTag}`,
+      title: `标签: ${tag}`,
       description,
       type: "website",
       siteName: "HeadSalon",
@@ -49,10 +47,17 @@ export async function generateMetadata(
     },
     twitter: {
       card: "summary",
-      title: `标签: ${decodedTag}`,
+      title: `标签: ${tag}`,
       description,
     },
   };
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/tag/[tag]">): Promise<Metadata> {
+  const { tag: encodedTag } = await params;
+  return getTagMetadata(decodeURIComponent(encodedTag));
 }
 
 export default function TagPage({ params }: PageProps<"/tag/[tag]">) {
