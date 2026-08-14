@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { ViewTransition } from "react";
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
+import { cacheLife, cacheTag } from "next/cache";
 import { notFound, permanentRedirect } from "next/navigation";
 import { getArticleByParam } from "@/lib/convex-cache";
 import { articleUrl } from "@/lib/urls";
@@ -24,11 +25,11 @@ async function resolveArticle(param: string) {
   return { article, legacyRedirect: null as string | null };
 }
 
-export async function generateMetadata(
-  { params }: PageProps<"/articles/[id]">,
-  _parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const { id } = await params;
+async function getArticleMetadata(id: string): Promise<Metadata> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("articles", `article-${id}`);
+
   const { article, legacyRedirect } = await resolveArticle(id);
 
   if (legacyRedirect) {
@@ -73,6 +74,13 @@ export async function generateMetadata(
       description,
     },
   };
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/articles/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  return getArticleMetadata(id);
 }
 
 export default function ArticlePage({ params }: PageProps<"/articles/[id]">) {

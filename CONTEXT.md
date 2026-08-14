@@ -24,7 +24,7 @@ Vocabulary for the blog/chat app backed by Convex. Use these terms consistently 
 ## Example dialogue
 
 > **Dev:** “Should we render the home article list on the server for SEO?”  
-> **Product:** “No — we need the home list to update live when articles sync in Convex. Article and tag pages can stay RSC + cached `fetchQuery`.”
+> **Product:** “No — we need the home list to update live when articles sync in Convex. Article and tag pages can stay RSC with `"use cache"` around `fetchQuery`.”
 
 ## Flagged ambiguities
 

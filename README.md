@@ -19,7 +19,7 @@
 - **Search quality.** Very short Chinese-only queries are rewritten server-side (`关于…的内容`) before embedding search; see `preprocessChineseQuery` in `convex/rag_search.ts`.
 - **Semantic search UI.** `RagSearchBar` (`src/components/search/rag-search-bar.tsx`) calls `rag_search.searchArticlesRAG`. Optional query history uses versioned `localStorage` key `headsalon-search-history:v1`, with migration from the older unversioned `headsalon-search-history` and legacy `smart-search-history`. Parsed `word:token` filter fragments are supported; `urlSync` can wire `?q=` later.
 - **Chat URL.** If `NEXT_PUBLIC_CONVEX_URL` is missing or wrong, `/discuss` will not reach the Convex HTTP action—verify `.site` resolves and CORS matches your deployment model.
-- **Performance / DX.** React Compiler is on; avoid adding `useMemo`/`useCallback` unless you have a measured reason. Prefer RSC data fetching where the app already does (e.g. articles via `getArticleBySlug` / `getArticlesByTag` in `src/lib/convex-cache.ts`, wrapped in `React.cache` for per-request dedupe). `next.config.ts` enables Cache Components and `experimental.optimizePackageImports` for `lucide-react` / `radix-ui`.
+- **Performance / DX.** React Compiler is on; avoid adding `useMemo`/`useCallback` unless you have a measured reason. Prefer RSC data fetching where the app already does (e.g. articles via `getArticleByParam` / `getArticlesByTag` in `src/lib/convex-cache.ts`, with `"use cache"`, `cacheLife("hours")`, and `cacheTag`). `next.config.ts` enables Cache Components and Partial Prefetching, plus `experimental.optimizePackageImports` for `lucide-react` / `radix-ui`.
 
 ## Reference
 
