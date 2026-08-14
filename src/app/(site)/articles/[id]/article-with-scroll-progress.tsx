@@ -1,15 +1,13 @@
 "use client";
 
-import { useRef, ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
-
-type ArticleWithScrollProgressProps = {
-  children: ReactNode;
-};
 
 export function ArticleWithScrollProgress({
   children,
-}: ArticleWithScrollProgressProps) {
+}: {
+  children: ReactNode;
+}) {
   const ref = useRef<HTMLDivElement>(null);
 
   return (

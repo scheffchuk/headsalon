@@ -38,5 +38,3 @@ export function useDiscussChat() {
     handleSuggestionClick,
   };
 }
-
-export type DiscussChatRuntime = ReturnType<typeof useDiscussChat>;

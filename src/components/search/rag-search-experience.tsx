@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useAction } from "convex/react";
 import { parseAsString, useQueryStates } from "nuqs";
+import type { FunctionReturnType } from "convex/server";
 import { api } from "../../../convex/_generated/api";
-import type { SearchResult } from "@convex/searchResult";
 import { RagSearchBar } from "@/components/search/rag-search-bar";
 import { SearchResults } from "@/components/search/search-results";
 
@@ -20,7 +20,9 @@ export function RagSearchExperience() {
 
   const [draftQuery, setDraftQuery] = useState(urlQuery);
   const [isEditing, setIsEditing] = useState(false);
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [results, setResults] = useState<
+    FunctionReturnType<typeof api.rag_search.searchArticlesRAG>
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const lastQueriedRef = useRef("");
 

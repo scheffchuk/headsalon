@@ -1,11 +1,12 @@
 import { ArticleCardSkeleton } from "../article/article-card-skeleton";
 
-type SearchStatesProps = {
+export function SearchStates({
+  state,
+  query,
+}: {
   state: "empty" | "loading" | "no-results";
   query?: string;
-};
-
-export function SearchStates({ state, query }: SearchStatesProps) {
+}) {
   switch (state) {
     case "empty":
       return (

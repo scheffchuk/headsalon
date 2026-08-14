@@ -1,17 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { ReactNode } from "react";
-
-interface StaggeredMotionItemProps {
-  children: ReactNode;
-  index: number;
-  delay?: number;
-  maxDelay?: number;
-  duration?: number;
-  initialY?: number;
-  className?: string;
-}
+import { type ReactNode } from "react";
 
 export function StaggeredMotion({
   children,
@@ -21,7 +11,15 @@ export function StaggeredMotion({
   duration = 0.2,
   initialY = 20,
   className,
-}: StaggeredMotionItemProps) {
+}: {
+  children: ReactNode;
+  index: number;
+  delay?: number;
+  maxDelay?: number;
+  duration?: number;
+  initialY?: number;
+  className?: string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: initialY }}

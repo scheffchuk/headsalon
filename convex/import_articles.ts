@@ -5,16 +5,17 @@ import { action } from "./_generated/server";
 import { RAG } from "@convex-dev/rag";
 import { openai } from "@ai-sdk/openai";
 import { components } from "./_generated/api";
+import {
+  ARTICLE_RAG_FILTER_NAMES,
+  ARTICLE_RAG_NAMESPACE,
+  type ArticleRagFilters,
+} from "./articleRag";
 
-// Initialize RAG component with Chinese-optimized embedding model
-const rag = new RAG(components.rag, {
+const rag = new RAG<ArticleRagFilters>(components.rag, {
   textEmbeddingModel: openai.embedding("text-embedding-3-large"),
-  embeddingDimension: 3072, // text-embedding-3-large dimensions
-  filterNames: ["slug", "date", "creationTime", "tag", "title"],
+  embeddingDimension: 3072,
+  filterNames: [...ARTICLE_RAG_FILTER_NAMES],
 });
-
-// Namespace for organizing content - using "articles" for blog content
-const ARTICLES_NAMESPACE = "articles";
 
 // Article type from the JSONL export
 const ArticleValidator = v.object({
@@ -55,7 +56,7 @@ export const importArticlesBatch = action({
       try {
         // Check if article already exists in RAG system
         const existsCheck = await rag.search(ctx, {
-          namespace: ARTICLES_NAMESPACE,
+          namespace: ARTICLE_RAG_NAMESPACE,
           query: article._id,
           limit: 1,
           vectorScoreThreshold: 0.1,
@@ -74,7 +75,7 @@ export const importArticlesBatch = action({
           const tagString = article.tags.join("|"); // Join tags with separator
 
           await rag.add(ctx, {
-            namespace: ARTICLES_NAMESPACE,
+            namespace: ARTICLE_RAG_NAMESPACE,
             text: fullText,
             key: article._id, // Use article._id as unique key
             importance: 1.0, // All articles have equal importance
@@ -150,7 +151,7 @@ export const importArticlesSimple = action({
       try {
         // Check if article already exists in RAG system
         const existsCheck = await rag.search(ctx, {
-          namespace: ARTICLES_NAMESPACE,
+          namespace: ARTICLE_RAG_NAMESPACE,
           query: article._id,
           limit: 1,
           vectorScoreThreshold: 0.1,
@@ -169,7 +170,7 @@ export const importArticlesSimple = action({
           const tagString = article.tags.join("|"); // Join tags with separator
 
           await rag.add(ctx, {
-            namespace: ARTICLES_NAMESPACE,
+            namespace: ARTICLE_RAG_NAMESPACE,
             text: fullText,
             key: article._id, // Use article._id as unique key
             importance: 1.0, // All articles have equal importance

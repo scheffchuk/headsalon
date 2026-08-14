@@ -62,18 +62,6 @@ function loadSearchHistoryList(): string[] {
   }
 }
 
-export type RagSearchBarProps = {
-  className?: string;
-  placeholder?: string;
-  /** Controlled input value (URL-synced query). */
-  value?: string;
-  onSearch?: (query: string) => void;
-  onQueryChange?: (query: string) => void;
-  onFocus?: () => void;
-  searchHistory?: boolean;
-  maxHistoryItems?: number;
-};
-
 export function RagSearchBar({
   className,
   placeholder = "Search…",
@@ -83,7 +71,17 @@ export function RagSearchBar({
   onFocus,
   searchHistory = false,
   maxHistoryItems = 10,
-}: RagSearchBarProps) {
+}: {
+  className?: string;
+  placeholder?: string;
+  /** Controlled input value (URL-synced query). */
+  value?: string;
+  onSearch?: (query: string) => void;
+  onQueryChange?: (query: string) => void;
+  onFocus?: () => void;
+  searchHistory?: boolean;
+  maxHistoryItems?: number;
+}) {
   const [internalQuery, setInternalQuery] = useState(value ?? "");
   const query = value !== undefined ? value : internalQuery;
   const setQuery = (next: string) => {

@@ -12,23 +12,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { tagUrl } from "@/lib/urls";
+import type { Doc } from "@convex/_generated/dataModel";
 import { BackButton } from "./back-button";
 
-type Article = {
-  _id: string;
-  title: string;
-  slug: string;
-  content: string;
-  excerpt?: string;
-  tags: string[];
-  date: string;
-};
-
-type ArticleProps = {
-  article: Article | null;
-};
-
-export function Article({ article }: ArticleProps) {
+export function Article({ article }: { article: Doc<"articles"> | null }) {
   if (!article) {
     notFound();
   }
