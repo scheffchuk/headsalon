@@ -26,7 +26,7 @@
 - Next.js App Router UI: `src/app/(site)/` for the blog shell (home, `/articles/[slug]`, `/tag/[tag]`, `/search`); `src/app/(chat)/discuss/` for chat (no shared site `Header` on discuss—see `(chat)/layout.tsx`).
 - Global shell: `src/app/layout.tsx` (Geist fonts, `ConvexClientProvider`, toasts, Vercel Analytics, `lang="zh-CN"`). Blog chrome: `(site)/layout.tsx` adds `Header` + max-width wrapper.
 - Header nav: logo home, 搜索 → `/search`, AI → `/discuss` (`src/components/header.tsx`).
-- Article index: paginated Convex query `articles.getArticles` (`src/components/articles/article-list.tsx`).
+- Article index: cached RSC offset pages via `articles.getHomeArticlePage` (`/` and `/page/N`).
 - Article detail: markdown rendering, scroll-progress client wrapper, metadata (`src/app/(site)/articles/[slug]/`).
 - Tag pages: articles by tag; list UI colocated in `src/app/(site)/tag/[tag]/page.tsx`.
 - Search: client calls action `rag_search.searchArticlesRAG`; results `src/components/search/search-results.tsx`; experience `src/components/search/rag-search-experience.tsx`.

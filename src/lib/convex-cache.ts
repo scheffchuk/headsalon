@@ -22,3 +22,17 @@ export async function getArticlesByTag(tag: string) {
   cacheTag("articles", `tag-${tag}`);
   return fetchQuery(api.articles.getArticlesByTag, { tag });
 }
+
+export async function getHomeArticlePage(page: number) {
+  "use cache";
+  cacheLife("max");
+  cacheTag("articles", "home");
+  return fetchQuery(api.articles.getHomeArticlePage, { page });
+}
+
+export async function getHomeArticleCount() {
+  "use cache";
+  cacheLife("max");
+  cacheTag("articles", "home");
+  return fetchQuery(api.articles.getHomeArticleCount, {});
+}

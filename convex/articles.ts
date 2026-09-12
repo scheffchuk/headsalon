@@ -1,7 +1,12 @@
-import { v } from "convex/values";
-import { query } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
+import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
+import { query } from "./_generated/server";
+import { articleAggregate } from "./lib/articleAggregate";
+import { internalMutation } from "./lib/functions";
+
+const HOME_PAGE_SIZE = 30;
 
 const articleListItemValidator = v.object({
   _id: v.id("articles"),
@@ -60,6 +65,96 @@ export const getArticles = query({
         date: article.date,
         tags: article.tags,
       })),
+    };
+  },
+});
+
+export const getHomeArticleCount = query({
+  args: {},
+  returns: v.number(),
+  handler: async (ctx) => {
+    return await articleAggregate.count(ctx);
+  },
+});
+
+export const getHomeArticlePage = query({
+  args: {
+    page: v.number(),
+  },
+  returns: v.object({
+    items: v.array(articleListItemValidator),
+    totalCount: v.number(),
+    totalPages: v.number(),
+  }),
+  handler: async (ctx, { page }) => {
+    const totalCount = await articleAggregate.count(ctx);
+    const totalPages = Math.ceil(totalCount / HOME_PAGE_SIZE);
+    if (totalCount === 0 || page < 1 || page > totalPages) {
+      return { items: [], totalCount, totalPages };
+    }
+
+    const offset = (page - 1) * HOME_PAGE_SIZE;
+    const start = await articleAggregate.at(ctx, -(offset + 1));
+    const { page: aggregatePage } = await articleAggregate.paginate(ctx, {
+      bounds: {
+        upper: { key: start.key, id: start.id, inclusive: true },
+      },
+      order: "desc",
+      pageSize: HOME_PAGE_SIZE,
+    });
+
+    const docs = await Promise.all(
+      aggregatePage.map((item) => ctx.db.get("articles", item.id)),
+    );
+
+    return {
+      items: docs
+        .filter((article): article is Doc<"articles"> => article !== null)
+        .map((article) => ({
+          _id: article._id,
+          title: article.title,
+          slug: article.slug,
+          date: article.date,
+          tags: article.tags,
+        })),
+      totalCount,
+      totalPages,
+    };
+  },
+});
+
+export const backfillArticleAggregate = internalMutation({
+  args: {
+    cursor: v.union(v.string(), v.null()),
+    numItems: v.optional(v.number()),
+  },
+  returns: v.object({
+    isDone: v.boolean(),
+    continueCursor: v.union(v.string(), v.null()),
+    inserted: v.number(),
+  }),
+  handler: async (ctx, { cursor, numItems }) => {
+    const pageSize = numItems ?? 64;
+    const page = await ctx.db.query("articles").paginate({
+      numItems: pageSize,
+      cursor,
+    });
+
+    for (const article of page.page) {
+      await articleAggregate.insertIfDoesNotExist(ctx, article);
+    }
+
+    if (!page.isDone) {
+      await ctx.scheduler.runAfter(0, internal.articles.backfillArticleAggregate, {
+        cursor: page.continueCursor,
+        numItems: pageSize,
+      });
+    }
+
+    return {
+      isDone: page.isDone,
+      continueCursor: page.continueCursor,
+      inserted: page.page.length,
     };
   },
 });
