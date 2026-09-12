@@ -6,7 +6,7 @@ Vocabulary for the blog/chat app backed by Convex. Use these terms consistently 
 
 **Article** — A Convex `articles` document (title, slug, HTML-capable Markdown `content`, `tags`, ISO `date`, optional `excerpt`). Rendered at `/articles/[slug]`.
 
-**Chronological index** — Articles ordered by `date` descending, shown on the home page via Convex `articles.getArticles` with client pagination/subscription (`usePaginatedQuery`) so the list stays in sync with imports.
+**Chronological index** — Articles ordered by `date` descending, shown on `/` and `/page/N` via Convex `articles.getHomeArticlePage` (Aggregate count + offset, page size 30) loaded in cached RSC.
 
 **Tag index** — Articles that share a tag, resolved through `articleTags` / `articles.getArticlesByTag`, rendered under `/tag/[tag]`.
 
@@ -18,13 +18,13 @@ Vocabulary for the blog/chat app backed by Convex. Use these terms consistently 
 
 ## Relationships
 
-- The **Chronological index** and **Article**/**Tag index** reads use **different loaders** by design — see [`docs/adr/0001-article-index-loading.md`](docs/adr/0001-article-index-loading.md).
+- The **Chronological index** and **Article**/**Tag index** reads share cached RSC loaders — see [`docs/adr/0001-article-index-loading.md`](docs/adr/0001-article-index-loading.md).
 - **RAG search** returns article metadata aligned with list cards but is independent of the chronological index query.
 
 ## Example dialogue
 
 > **Dev:** “Should we render the home article list on the server for SEO?”  
-> **Product:** “No — we need the home list to update live when articles sync in Convex. Article and tag pages can stay RSC with `"use cache"` around `fetchQuery`.”
+> **Product:** “Yes — home matches article and tag pages: cached RSC with `"use cache"` around `fetchQuery`, numbered offset pages.”
 
 ## Flagged ambiguities
 

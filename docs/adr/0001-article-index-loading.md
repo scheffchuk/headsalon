@@ -1,3 +1,3 @@
-# Article index: live home list vs RSC reads
+# Article index: cached RSC offset pages
 
-The chronological index on `/` uses Convex client pagination (`usePaginatedQuery` on `articles.getArticles`) so new or updated articles appear without a full page refresh. The list is a client island (`ssr: false`) so the Cache Components static shell does not require Convex at prerender. Article detail and tag listing routes use `fetchQuery` from the server with `"use cache"` in `src/lib/convex-cache.ts` so document and tag views participate in Cache Components (Partial Prerendering, `cacheLife("hours")`, `cacheTag`). This split is intentional: freshness for the main index, cached RSC reads for stable document and tag views.
+The chronological index uses the same cached RSC loader as article detail and tag listing: `fetchQuery` from the server with `"use cache"` in `src/lib/convex-cache.ts`. Home is `/` (page 1) and `/page/N`, offset pages of 30, prerendered with `generateStaticParams`. Cache Components uses `cacheLife("max")` and `cacheTag("articles", "home")` on the index loaders. This reverses the earlier live `usePaginatedQuery` client island on `/`.

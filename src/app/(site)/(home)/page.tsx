@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import { ArticleListClient } from "@/components/articles/article-list-client";
+import { HomeArticleIndex } from "@/components/articles/home-article-index";
 import { ArticleListSkeleton } from "@/components/articles/articles-skeleton";
 
 export default function HomePage() {
   return (
     <Suspense fallback={<ArticleListSkeleton />}>
-      <ArticleListClient />
+      <HomeArticleIndex page={1} />
     </Suspense>
   );
 }

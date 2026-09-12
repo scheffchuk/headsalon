@@ -8,3 +8,8 @@ export function articleUrl(article: Pick<ArticlePreview, "_id">): string {
 export function tagUrl(tag: string): string {
   return `/tag/${encodeURIComponent(tag)}`;
 }
+
+/** Canonical chronological index URL: `/` is page 1. */
+export function homePageHref(page: number): string {
+  return page <= 1 ? "/" : `/page/${page}`;
+}

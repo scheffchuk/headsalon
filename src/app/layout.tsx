@@ -17,7 +17,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HeadSalon",
+  title: {
+    default: "HeadSalon",
+    template: "HeadSalon · %s",
+  },
   description: "A Salon for Heads, No Sofa for Ass",
 };
 
