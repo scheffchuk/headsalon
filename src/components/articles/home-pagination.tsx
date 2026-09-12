@@ -1,11 +1,13 @@
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { homePagerWindow } from "@/lib/home-pagination";
 import { homePageHref } from "@/lib/urls";
 
 export function HomePagination({
@@ -19,33 +21,45 @@ export function HomePagination({
     return null;
   }
 
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const atFirst = page <= 1;
+  const atLast = page >= totalPages;
 
   return (
     <div className="mt-8 flex flex-col items-center gap-2">
       <Pagination>
         <PaginationContent>
-          {page > 1 ? (
-            <PaginationItem>
-              <PaginationPrevious href={homePageHref(page - 1)} />
-            </PaginationItem>
-          ) : null}
-          {pages.map((n) => (
-            <PaginationItem key={n}>
-              <PaginationLink href={homePageHref(n)} isActive={n === page}>
-                {n}
-              </PaginationLink>
-            </PaginationItem>
-          ))}
-          {page < totalPages ? (
-            <PaginationItem>
-              <PaginationNext href={homePageHref(page + 1)} />
-            </PaginationItem>
-          ) : null}
+          <PaginationItem>
+            <PaginationPrevious
+              href={atFirst ? homePageHref(page) : homePageHref(page - 1)}
+              aria-disabled={atFirst || undefined}
+            />
+          </PaginationItem>
+          {homePagerWindow(page, totalPages).map((item) =>
+            item.type === "ellipsis" ? (
+              <PaginationItem key={item.key}>
+                <PaginationEllipsis />
+              </PaginationItem>
+            ) : (
+              <PaginationItem key={item.page}>
+                <PaginationLink
+                  href={homePageHref(item.page)}
+                  isActive={item.page === page}
+                >
+                  {item.page}
+                </PaginationLink>
+              </PaginationItem>
+            ),
+          )}
+          <PaginationItem>
+            <PaginationNext
+              href={atLast ? homePageHref(page) : homePageHref(page + 1)}
+              aria-disabled={atLast || undefined}
+            />
+          </PaginationItem>
         </PaginationContent>
       </Pagination>
       <p className="text-sm text-muted-foreground">
-        {page} of {totalPages}
+        Page {page} of {totalPages}
       </p>
     </div>
   );
