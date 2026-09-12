@@ -4,7 +4,7 @@ Vocabulary for the blog/chat app backed by Convex. Use these terms consistently 
 
 ## Language
 
-**Article** — A Convex `articles` document (title, slug, HTML-capable Markdown `content`, `tags`, ISO `date`, optional `excerpt`). Rendered at `/articles/[slug]`.
+**Article** — A Convex `articles` document (title, slug, HTML-capable Markdown `content`, `tags`, ISO `date`, optional `excerpt`). Rendered at `/articles/[id]`, keyed by Convex document id; a legacy slug URL permanently redirects to the id URL.
 
 **Chronological index** — Articles ordered by `date` descending, shown on `/` and `/page/N` via Convex `articles.getHomeArticlePage` (Aggregate count + offset, page size 30) loaded in cached RSC.
 
