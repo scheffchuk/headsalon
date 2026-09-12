@@ -42,14 +42,18 @@ function PaginationLink({
   className,
   isActive,
   size = "icon",
+  "aria-disabled": ariaDisabled,
   ...props
 }: {
   isActive?: boolean
 } & Pick<React.ComponentProps<typeof Button>, "size"> &
   React.ComponentProps<typeof Link>) {
+  const disabled = ariaDisabled === true || ariaDisabled === "true"
+
   return (
     <Link
       aria-current={isActive ? "page" : undefined}
+      aria-disabled={ariaDisabled}
       data-slot="pagination-link"
       data-active={isActive}
       className={cn(
@@ -57,9 +61,11 @@ function PaginationLink({
           variant: isActive ? "outline" : "ghost",
           size,
         }),
+        disabled && "pointer-events-none opacity-50",
         className
       )}
       {...props}
+      tabIndex={disabled ? -1 : props.tabIndex}
     />
   )
 }
