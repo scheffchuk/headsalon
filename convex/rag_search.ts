@@ -1,11 +1,11 @@
 "use node";
 
-import { v } from "convex/values";
 import { RAG } from "@convex-dev/rag";
 import { openai } from "@ai-sdk/openai";
-import { components } from "./_generated/api";
-import type { ActionCtx } from "./_generated/server";
-import { action } from "./_generated/server";
+import { SessionIdArg } from "convex-helpers/server/sessions";
+import { ConvexError, v } from "convex/values";
+import { components, internal } from "./_generated/api";
+import { action, ActionCtx, internalAction } from "./_generated/server";
 import {
   ARTICLE_RAG_FILTER_NAMES,
   ARTICLE_RAG_NAMESPACE,
@@ -15,7 +15,7 @@ import {
   type ArticleRagFilters,
   type ArticleRagInput,
 } from "./articleRag";
-import { SearchResultValidator } from "./searchResult";
+import { SearchResultValidator, type SearchResult } from "./searchResult";
 
 export const articleRag = new RAG<ArticleRagFilters>(components.rag, {
   textEmbeddingModel: openai.embedding("text-embedding-3-large"),
@@ -38,30 +38,90 @@ export async function addArticle(
 
 export const searchArticlesRAG = action({
   args: {
+    ...SessionIdArg,
     query: v.string(),
     limit: v.optional(v.number()),
+    tagFilter: v.optional(v.string()),
     similarityThreshold: v.optional(v.number()),
   },
   returns: v.array(SearchResultValidator),
   handler: async (
-    ctx,
-    { query, limit = 20, similarityThreshold = 0.3 },
+    ctx: ActionCtx,
+    { sessionId, query, limit = 20, tagFilter, similarityThreshold = 0.3 },
   ) => {
     if (!query.trim()) return [];
 
-    try {
-      const searchResult = await articleRag.search(ctx, {
-        namespace: ARTICLE_RAG_NAMESPACE,
-        query: preprocessChineseQuery(query),
-        limit: Math.min(limit * 2, 100),
-        vectorScoreThreshold: similarityThreshold,
-        chunkContext: { before: 1, after: 1 },
+    const rateLimit = await ctx.runMutation(internal.rateLimits.take, {
+      operation: "search",
+      sessionId,
+    });
+    if (!rateLimit.ok) {
+      throw new ConvexError({
+        kind: "RateLimited",
+        retryAfter: rateLimit.retryAfter,
       });
-
-      return projectSearchResults(searchResult, limit);
-    } catch (error) {
-      console.error("Error in RAG search:", error);
-      return [];
     }
+
+    return searchArticles(ctx, {
+      query,
+      limit,
+      tagFilter,
+      similarityThreshold,
+    });
   },
 });
+
+export const searchArticlesRAGForChat = internalAction({
+  args: {
+    query: v.string(),
+    limit: v.optional(v.number()),
+    tagFilter: v.optional(v.string()),
+    similarityThreshold: v.optional(v.number()),
+  },
+  returns: v.array(SearchResultValidator),
+  handler: async (
+    ctx: ActionCtx,
+    { query, limit = 20, tagFilter, similarityThreshold = 0.3 },
+  ) =>
+    searchArticles(ctx, {
+      query,
+      limit,
+      tagFilter,
+      similarityThreshold,
+    }),
+});
+
+async function searchArticles(
+  ctx: ActionCtx,
+  {
+    query,
+    limit,
+    tagFilter,
+    similarityThreshold,
+  }: {
+    query: string;
+    limit: number;
+    tagFilter?: string;
+    similarityThreshold: number;
+  },
+): Promise<SearchResult[]> {
+  if (!query.trim()) return [];
+
+  try {
+    const searchResult = await articleRag.search(ctx, {
+      namespace: ARTICLE_RAG_NAMESPACE,
+      query: preprocessChineseQuery(query),
+      limit: Math.min(limit * 2, 100),
+      vectorScoreThreshold: similarityThreshold,
+      chunkContext: { before: 1, after: 1 },
+      ...(tagFilter && {
+        filterValues: [{ name: "tag", value: tagFilter }],
+      }),
+    });
+
+    return projectSearchResults(searchResult, limit);
+  } catch (error) {
+    console.error("Error in RAG search:", error);
+    return [];
+  }
+}

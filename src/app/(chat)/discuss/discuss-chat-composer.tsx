@@ -19,9 +19,13 @@ export function DiscussChatComposer({
   messages,
   status,
   stop,
+  isRateLimited,
+  rateLimitMessage,
   handleSubmit,
   handleSuggestionClick,
 }: Pick<ReturnType<typeof useChat>, "messages" | "status" | "stop"> & {
+  isRateLimited: boolean;
+  rateLimitMessage: string | null;
   handleSubmit: ComponentProps<typeof PromptInput>["onSubmit"];
   handleSuggestionClick: ComponentProps<typeof Suggestion>["onClick"];
 }) {
@@ -37,17 +41,31 @@ export function DiscussChatComposer({
                 key={s}
                 suggestion={s}
                 onClick={handleSuggestionClick}
+                disabled={isRateLimited}
               />
             ))}
           </Suggestions>
         )}
+        {rateLimitMessage ? (
+          <p
+            aria-live="polite"
+            className="pb-2 text-sm text-destructive"
+            role="alert"
+          >
+            {rateLimitMessage}
+          </p>
+        ) : null}
         <PromptInput onSubmit={handleSubmit} className="pb-4">
           <PromptInputBody>
-            <PromptInputTextarea />
+            <PromptInputTextarea disabled={isRateLimited} />
           </PromptInputBody>
           <PromptInputFooter>
             <PromptInputTools />
-            <PromptInputSubmit status={status} onStop={stop} />
+            <PromptInputSubmit
+              disabled={isRateLimited}
+              status={status}
+              onStop={stop}
+            />
           </PromptInputFooter>
         </PromptInput>
       </div>

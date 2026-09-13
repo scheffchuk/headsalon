@@ -71,6 +71,7 @@ export function RagSearchBar({
   onFocus,
   searchHistory = false,
   maxHistoryItems = 10,
+  disabled = false,
 }: {
   className?: string;
   placeholder?: string;
@@ -81,6 +82,7 @@ export function RagSearchBar({
   onFocus?: () => void;
   searchHistory?: boolean;
   maxHistoryItems?: number;
+  disabled?: boolean;
 }) {
   const [internalQuery, setInternalQuery] = useState(value ?? "");
   const query = value !== undefined ? value : internalQuery;
@@ -149,6 +151,7 @@ export function RagSearchBar({
   };
 
   const runSearch = (raw: string) => {
+    if (disabled) return;
     const trimmed = raw.trim();
     if (!trimmed) return;
     onSearch?.(trimmed);
@@ -224,6 +227,7 @@ export function RagSearchBar({
           type="text"
           role="searchbox"
           aria-label={placeholder}
+          disabled={disabled}
           value={query}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
@@ -244,6 +248,7 @@ export function RagSearchBar({
               <button
                 type="button"
                 onClick={clearQuery}
+                disabled={disabled}
                 className="p-1.5 hover:bg-muted rounded-full transition-colors"
               >
                 <X className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
@@ -254,10 +259,10 @@ export function RagSearchBar({
           <button
             type="button"
             onClick={() => runSearch(query)}
-            disabled={!query.trim()}
+            disabled={disabled || !query.trim()}
             className={cn(
               "p-1.5 rounded-full transition-colors",
-              query.trim()
+              query.trim() && !disabled
                 ? "hover:bg-muted text-foreground"
                 : "text-muted-foreground cursor-not-allowed",
             )}

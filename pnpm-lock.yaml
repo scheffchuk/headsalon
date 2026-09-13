@@ -20,6 +20,9 @@ importers:
       '@convex-dev/rag':
         specifier: ^0.5.2
         version: 0.5.2(@convex-dev/workpool@0.2.18(convex-helpers@0.1.120(@standard-schema/spec@1.1.0)(convex@1.37.0(react@19.2.8))(react@19.2.8)(typescript@5.9.2)(zod@3.25.76))(convex@1.37.0(react@19.2.8)))(convex-helpers@0.1.120(@standard-schema/spec@1.1.0)(convex@1.37.0(react@19.2.8))(react@19.2.8)(typescript@5.9.2)(zod@3.25.76))(convex@1.37.0(react@19.2.8))(zod@3.25.76)
+      '@convex-dev/rate-limiter':
+        specifier: ^0.3.2
+        version: 0.3.2(convex@1.37.0(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-accordion':
         specifier: ^1.2.12
         version: 1.2.12(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -423,6 +426,15 @@ packages:
       '@convex-dev/workpool': ^0.2.14
       convex: ^1.24.8
       convex-helpers: ^0.1.94
+
+  '@convex-dev/rate-limiter@0.3.2':
+    resolution: {integrity: sha512-+oBPsBfFbzdxiF/9XaaTQmVnvDlvEfg/c69/v8LxTbw4VLuiflIKlfnPQL8OS0azXQQ11hcPWHmU8ytFmHKDXA==}
+    peerDependencies:
+      convex: ^1.24.8
+      react: ^18.2.0 || ^19.0.0
+    peerDependenciesMeta:
+      react:
+        optional: true
 
   '@convex-dev/workpool@0.2.18':
     resolution: {integrity: sha512-tfRfBCukaRiybxwy4/W3rLWpIRhPivFH9tC5++d0XE1sV627vw2mAwOM9SnpY1k+BWVoNrHrHrxBheklSbuAag==}
@@ -5928,6 +5940,12 @@ snapshots:
       convex-helpers: 0.1.120(@standard-schema/spec@1.1.0)(convex@1.37.0(react@19.2.8))(react@19.2.8)(typescript@5.9.2)(zod@3.25.76)
     transitivePeerDependencies:
       - zod
+
+  '@convex-dev/rate-limiter@0.3.2(convex@1.37.0(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      convex: 1.37.0(react@19.2.8)
+    optionalDependencies:
+      react: 19.2.8
 
   '@convex-dev/workpool@0.2.18(convex-helpers@0.1.120(@standard-schema/spec@1.1.0)(convex@1.37.0(react@19.2.8))(react@19.2.8)(typescript@5.9.2)(zod@3.25.76))(convex@1.37.0(react@19.2.8))':
     dependencies:

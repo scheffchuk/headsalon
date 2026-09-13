@@ -7,9 +7,43 @@ import {
   stepCountIs,
 } from "ai";
 import { z } from "zod";
-import { api } from "./_generated/api";
+import { ConvexError } from "convex/values";
+import { internal } from "./_generated/api";
 
 const http = httpRouter();
+const SESSION_HEADER = "X-HeadSalon-Session";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  Vary: "origin",
+};
+
+function getRateLimitRetryAfter(error: unknown): number | null {
+  if (!(error instanceof ConvexError)) return null;
+  const data: unknown = error.data;
+  if (typeof data !== "object" || data === null) return null;
+
+  const payload = data as Record<string, unknown>;
+  return payload.kind === "RateLimited" &&
+    typeof payload.retryAfter === "number" &&
+    Number.isFinite(payload.retryAfter) &&
+    payload.retryAfter > 0
+    ? payload.retryAfter
+    : null;
+}
+
+function rateLimitedResponse(retryAfter: number): Response {
+  return Response.json(
+    { kind: "RateLimited", retryAfter },
+    {
+      status: 429,
+      headers: {
+        ...corsHeaders,
+        "Retry-After": Math.ceil(retryAfter / 1_000).toString(),
+      },
+    },
+  );
+}
 
 const systemPrompt = `You are WhigZhou — rigorous social analyst, polymath blogger. Discuss like a human; be insightful but concise.
 
@@ -44,6 +78,22 @@ http.route({
   path: "/api/chat",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
+    const sessionId = req.headers.get(SESSION_HEADER) ?? "anonymous";
+    let rateLimit;
+    try {
+      rateLimit = await ctx.runMutation(internal.rateLimits.take, {
+        operation: "chat",
+        sessionId,
+      });
+    } catch (error) {
+      const retryAfter = getRateLimitRetryAfter(error);
+      if (retryAfter !== null) return rateLimitedResponse(retryAfter);
+      throw error;
+    }
+    if (!rateLimit.ok) {
+      return rateLimitedResponse(rateLimit.retryAfter ?? 1_000);
+    }
+
     const { messages } =
       await req.json();
 
@@ -65,7 +115,7 @@ http.route({
             console.log("findRelatedArticle query:", query);
 
             const searchResults = await ctx.runAction(
-              api.rag_search.searchArticlesRAG,
+              internal.rag_search.searchArticlesRAGForChat,
               {
                 query,
               }
@@ -88,10 +138,7 @@ http.route({
     });
 
     return result.toUIMessageStreamResponse({
-      headers: new Headers({
-        "Access-Control-Allow-Origin": "*",
-        Vary: "origin",
-      }),
+      headers: new Headers(corsHeaders),
     });
   }),
 });
@@ -110,7 +157,8 @@ http.route({
         headers: new Headers({
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "POST",
-          "Access-Control-Allow-Headers": "Content-Type, Digest, Authorization",
+          "Access-Control-Allow-Headers":
+            "Content-Type, Digest, Authorization, X-HeadSalon-Session",
           "Access-Control-Max-Age": "86400",
         }),
       });
