@@ -27,12 +27,10 @@ import { Loader } from "@/components/ai-elements/loader";
 import type { useChat } from "@ai-sdk/react";
 import { DiscussChatCopyAction } from "./discuss-chat-copy-action";
 
-type Chat = ReturnType<typeof useChat>;
-
 export function DiscussChatMessageList({
   messages,
   status,
-}: Pick<Chat, "messages" | "status">) {
+}: Pick<ReturnType<typeof useChat>, "messages" | "status">) {
   return (
     <>
       {messages.map((message) => {

@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
   articleRagFilterValues,
-  articleRagText,
   preprocessChineseQuery,
   projectSearchResults,
 } from "./articleRag";
@@ -17,10 +16,6 @@ const article = {
 };
 
 describe("RAG article module", () => {
-  test("add text is title plus content", () => {
-    expect(articleRagText(article)).toBe("Title\n\nbody");
-  });
-
   test("filterValues stay inside the module", () => {
     expect(articleRagFilterValues(article)).toEqual([
       { name: "slug", value: "slug" },

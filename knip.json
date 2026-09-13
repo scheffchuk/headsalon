@@ -3,12 +3,23 @@
   "next": {
     "config": "next.config.ts"
   },
-  "rules": {
-    "files": "off",
-    "exports": "off",
-    "types": "off"
+  "ignoreIssues": {
+    "src/components/ui/**": ["exports", "types"]
   },
-  "ignore": ["src/components/ai-elements/**"],
+  "ignore": [
+    "src/components/ai-elements/**",
+    "src/components/ui/accordion.tsx",
+    "src/components/ui/alert.tsx",
+    "src/components/ui/avatar.tsx",
+    "src/components/ui/carousel.tsx",
+    "src/components/ui/label.tsx",
+    "src/components/ui/loading-text.tsx",
+    "src/components/ui/popover.tsx",
+    "src/components/ui/progress.tsx",
+    "src/components/ui/staggered-motion.tsx",
+    "src/components/ui/switch.tsx",
+    "src/components/ui/tabs.tsx"
+  ],
   "ignoreDependencies": [
     "@radix-ui/react-accordion",
     "@radix-ui/react-avatar",

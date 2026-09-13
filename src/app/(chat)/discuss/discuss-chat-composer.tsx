@@ -8,14 +8,12 @@ import {
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputTools,
-  type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import type { useChat } from "@ai-sdk/react";
+import type { ComponentProps } from "react";
 
 const suggestions = ["你是谁？", "什么是达尔萨斯主义", "AI将如何改变人类社会"];
-
-type Chat = ReturnType<typeof useChat>;
 
 export function DiscussChatComposer({
   messages,
@@ -23,9 +21,9 @@ export function DiscussChatComposer({
   stop,
   handleSubmit,
   handleSuggestionClick,
-}: Pick<Chat, "messages" | "status" | "stop"> & {
-  handleSubmit: (message: PromptInputMessage) => void;
-  handleSuggestionClick: (suggestion: string) => void;
+}: Pick<ReturnType<typeof useChat>, "messages" | "status" | "stop"> & {
+  handleSubmit: ComponentProps<typeof PromptInput>["onSubmit"];
+  handleSuggestionClick: ComponentProps<typeof Suggestion>["onClick"];
 }) {
   return (
     <div className="sticky bottom-0 mx-auto w-full max-w-3xl px-4">

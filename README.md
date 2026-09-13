@@ -6,7 +6,7 @@ HeadSalon (海德沙龙) is a blog archive: a chronological index of articles, a
 
 The app depends on these pieces:
 
-- Next.js 16.3 App Router with `cacheComponents` and `partialPrefetching` on (`next.config.ts`), React 19
+- Next.js 16.3 App Router with `cacheComponents`, `partialPrefetching`, and `reactCompiler` on (`next.config.ts`), React 19
 - Convex: `articles` and `articleTags` tables (`convex/schema.ts`), `@convex-dev/aggregate` for the home page count and offset, `@convex-dev/rag` for embeddings and search, an HTTP route for chat streaming (`convex/http.ts`)
 - shadcn/ui components under `src/components/ui`, Vercel AI Elements under `src/components/ai-elements`, Tailwind v4
 - Vercel AI SDK (`ai`, `@ai-sdk/react`, `@ai-sdk/openai`)
@@ -18,7 +18,7 @@ The app depends on these pieces:
 - `/page/N` — Index pages 2 through N, 30 articles each. `/page/1` redirects to `/`. A page past the end returns 404.
 - `/articles/[id]` — One article by Convex id. `lookupArticle` (`src/lib/article-lookup.ts`) calls `articles.getArticleByParam` and returns `{ kind: "article" | "redirect" }` or null. The route only renders or 301s.
 - `/tag/[tag]` — Tag index: articles that share one tag, via `articles.getArticlesByTag`.
-- `/search` — RAG search. The client calls the action `rag_search.searchArticlesRAG`.
+- `/search` — RAG search. The RSC page calls `fetchAction(rag_search.searchArticlesRAG)` from `q`; the search bar is the client island.
 - `/discuss` — Discuss chat. Renders `ChatMaintenance` unless `NEXT_PUBLIC_AI_CHAT_ENABLED` is `true`. The client posts to the Convex HTTP route `POST /api/chat`.
 
 The `(site)` route group adds the `Header` and page width. The `(chat)` group has its own layout without the header.
@@ -65,7 +65,7 @@ npx convex dev
 
 3. Set the Next.js environment variables in `.env.local`. The file is gitignored.
 
-- `NEXT_PUBLIC_CONVEX_URL` — Deployment URL, `https://<name>.convex.cloud`. `npx convex dev` writes this value for you. The chat client derives the HTTP base by replacing `.cloud` with `.site` (`src/app/(chat)/discuss/discuss-chat-client.tsx`). If the variable is missing, the search-scoped `ConvexClientProvider` renders without a client.
+- `NEXT_PUBLIC_CONVEX_URL` — Deployment URL, `https://<name>.convex.cloud`. `npx convex dev` writes this value for you. The chat client derives the HTTP base by replacing `.cloud` with `.site` (`src/app/(chat)/discuss/discuss-chat-client.tsx`). Search results use the same URL via `fetchAction` on the server.
 - `NEXT_PUBLIC_AI_CHAT_ENABLED` — Set to `true` to enable `/discuss`. Any other value shows the maintenance page.
 
 4. Set provider keys on the Convex deployment (dashboard, Settings, Environment Variables), not in the repo. Embeddings use `openai.embedding("text-embedding-3-large")` from `@ai-sdk/openai`, which reads `OPENAI_API_KEY`. The chat model is the gateway string `xai/grok-4.5` in `convex/http.ts`, which the AI SDK resolves through Vercel AI Gateway with `AI_GATEWAY_API_KEY`.
@@ -97,7 +97,7 @@ Tests run under vitest with jsdom for `src/**` and Node for `convex/**/*.test.ts
 
 - `articles` — `title`, `slug`, Markdown `content`, optional `excerpt`, `tags`, ISO `date`. Indexes `by_slug`, `by_tags`.
 - `articleTags` — Join rows with `articleId`, `tag`, and `articleDate`. Index `by_tag_and_articleDate` drives tag pages. `migrations.backfillArticleTags` fills in missing rows.
-- RAG — `importArticlesBatch` (`convex/import_articles.ts`) embeds `title` plus `content` through the RAG article module (`convex/articleRag.ts` + `addArticle` in `convex/rag_search.ts`). `rag_search.searchArticlesRAG` searches that namespace and returns the `SearchResult` shape from `convex/searchResult.ts`. The Convex client adapter is scoped to `/search`, not the root layout.
+- RAG — `importArticlesBatch` (`convex/import_articles.ts`) embeds `title` plus `content` through the RAG article module (`convex/articleRag.ts` + `addArticle` in `convex/rag_search.ts`). `rag_search.searchArticlesRAG` searches that namespace and returns the `SearchResult` shape from `convex/searchResult.ts`. `/search` loads hits with `fetchAction` in RSC.
 
 ## Docs
 

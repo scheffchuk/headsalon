@@ -10,7 +10,6 @@ import {
   ARTICLE_RAG_FILTER_NAMES,
   ARTICLE_RAG_NAMESPACE,
   articleRagFilterValues,
-  articleRagText,
   preprocessChineseQuery,
   projectSearchResults,
   type ArticleRagFilters,
@@ -30,7 +29,7 @@ export async function addArticle(
 ): Promise<void> {
   await articleRag.add(ctx, {
     namespace: ARTICLE_RAG_NAMESPACE,
-    text: articleRagText(article),
+    text: `${article.title}\n\n${article.content}`,
     key: article.articleId,
     importance: 1.0,
     filterValues: articleRagFilterValues(article),

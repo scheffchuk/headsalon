@@ -38,12 +38,6 @@ export type ArticleRagSearchHit = {
   }>;
 };
 
-export function articleRagText(
-  article: Pick<ArticleRagInput, "title" | "content">,
-): string {
-  return `${article.title}\n\n${article.content}`;
-}
-
 export function articleRagFilterValues(
   article: ArticleRagInput,
 ): Array<{ name: (typeof ARTICLE_RAG_FILTER_NAMES)[number]; value: string }> {

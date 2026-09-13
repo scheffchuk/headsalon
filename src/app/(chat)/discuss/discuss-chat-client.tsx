@@ -1,13 +1,11 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import {
   Conversation,
   ConversationContent,
 } from "@/components/ai-elements/conversation";
 import { DefaultChatTransport } from "ai";
-import { useCallback } from "react";
 import { DiscussChatComposer } from "./discuss-chat-composer";
 import { DiscussChatMessageList } from "./discuss-chat-message-list";
 
@@ -23,19 +21,6 @@ export function DiscussChatClient() {
     }),
   });
 
-  const handleSubmit = useCallback(
-    (message: PromptInputMessage) => {
-      if (!message.text.trim()) return;
-      sendMessage({ text: message.text });
-    },
-    [sendMessage],
-  );
-
-  const handleSuggestionClick = useCallback(
-    (suggestion: string) => sendMessage({ text: suggestion }),
-    [sendMessage],
-  );
-
   return (
     <Conversation>
       <ConversationContent className="mx-auto w-full max-w-3xl px-4 pt-6 pb-36">
@@ -46,8 +31,11 @@ export function DiscussChatClient() {
         messages={messages}
         status={status}
         stop={stop}
-        handleSubmit={handleSubmit}
-        handleSuggestionClick={handleSuggestionClick}
+        handleSubmit={(message) => {
+          if (!message.text.trim()) return;
+          sendMessage({ text: message.text });
+        }}
+        handleSuggestionClick={(suggestion) => sendMessage({ text: suggestion })}
       />
     </Conversation>
   );

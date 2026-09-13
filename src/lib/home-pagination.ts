@@ -1,6 +1,6 @@
 import { HOME_PAGE_SIZE } from "@convex/lib/homePageSize";
 
-export type HomePagerItem =
+type HomePagerItem =
   | { type: "page"; page: number }
   | { type: "ellipsis"; key: string };
 
