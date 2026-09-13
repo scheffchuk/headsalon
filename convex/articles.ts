@@ -4,7 +4,8 @@ import { internal } from "./_generated/api";
 import { query } from "./_generated/server";
 import { articleAggregate } from "./lib/articleAggregate";
 import { internalMutation } from "./lib/functions";
-import { HOME_PAGE_SIZE } from "./lib/homePageSize";
+
+const HOME_PAGE_SIZE = 30;
 
 const articleListItemValidator = v.object({
   _id: v.id("articles"),

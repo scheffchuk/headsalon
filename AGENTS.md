@@ -26,6 +26,7 @@ Flat reference. Every line must change behaviour vs default.
 - Let errors propagate unless you have a recovery path
 - Prefer `unknown` + narrow; never cast to `any`
 - Stay **concrete** — no abstraction or helper until an inline expression won't do
+- Do not extract a module that only exports a single constant or other one-liner
 - Names over comments
 - don't write local types. try to reuse existing types or export a type from a shared module file. prefer inferring types otherwise
 

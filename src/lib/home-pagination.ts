@@ -1,4 +1,4 @@
-import { HOME_PAGE_SIZE } from "@convex/lib/homePageSize";
+const HOME_PAGE_SIZE = 30;
 
 type HomePagerItem =
   | { type: "page"; page: number }
