@@ -44,12 +44,6 @@ async function seedArticles(
 }
 
 describe("articles queries", () => {
-  test("getArticleBySlug returns null when slug whitespace only", async () => {
-    const t = setup();
-    const r = await t.query(api.articles.getArticleBySlug, { slug: "   " });
-    expect(r).toBeNull();
-  });
-
   test("getArticleByParam returns null when param blank", async () => {
     const t = setup();
     const r = await t.query(api.articles.getArticleByParam, { param: "  " });
@@ -60,32 +54,6 @@ describe("articles queries", () => {
     const t = setup();
     const r = await t.query(api.articles.getArticlesByTag, { tag: "  " });
     expect(r).toEqual([]);
-  });
-
-  test("getArticles pagination returns list projection shape", async () => {
-    const t = setup();
-    await t.run(async (ctx) => {
-      await ctx.db.insert("articles", {
-        title: "Hello",
-        slug: "hello",
-        content: "body",
-        tags: ["topic"],
-        date: "2025-05-04",
-      });
-    });
-
-    const page = await t.query(api.articles.getArticles, {
-      paginationOpts: { numItems: 10, cursor: null },
-    });
-
-    expect(page.page).toHaveLength(1);
-    expect(page.page[0]).toMatchObject({
-      title: "Hello",
-      slug: "hello",
-      date: "2025-05-04",
-      tags: ["topic"],
-    });
-    expect(page.page[0]._id).toBeTruthy();
   });
 
   test("getArticleByParam resolves by slug then by id", async () => {
@@ -140,6 +108,8 @@ describe("articles queries", () => {
       title: "T",
       tags: [tag],
     });
+    expect(rows[0]).not.toHaveProperty("excerpt");
+    expect(rows[0]).not.toHaveProperty("content");
   });
 
   test("backfillArticleTags inserts missing join rows", async () => {
@@ -184,6 +154,7 @@ describe("articles queries", () => {
     });
     expect(result.items[0]?._id).toBeTruthy();
     expect(result.items[0]).not.toHaveProperty("content");
+    expect(result.items[0]).not.toHaveProperty("excerpt");
   });
 
   test("getHomeArticlePage is date-desc and last page has the remainder", async () => {

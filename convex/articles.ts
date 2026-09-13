@@ -1,4 +1,3 @@
-import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
@@ -16,15 +15,6 @@ const articleListItemValidator = v.object({
   tags: v.array(v.string()),
 });
 
-const articleByTagItemValidator = v.object({
-  _id: v.id("articles"),
-  title: v.string(),
-  slug: v.string(),
-  excerpt: v.optional(v.string()),
-  tags: v.array(v.string()),
-  date: v.string(),
-});
-
 const fullArticleValidator = v.object({
   _id: v.id("articles"),
   _creationTime: v.number(),
@@ -34,39 +24,6 @@ const fullArticleValidator = v.object({
   excerpt: v.optional(v.string()),
   tags: v.array(v.string()),
   date: v.string(),
-});
-
-export const getArticles = query({
-  args: {
-    paginationOpts: paginationOptsValidator,
-  },
-  returns: v.object({
-    page: v.array(articleListItemValidator),
-    isDone: v.boolean(),
-    continueCursor: v.union(v.string(), v.null()),
-    pageStatus: v.optional(
-      v.union(v.literal("SplitRecommended"), v.literal("SplitRequired"), v.null()),
-    ),
-    splitCursor: v.optional(v.union(v.string(), v.null())),
-  }),
-  handler: async (ctx, args) => {
-    const result = await ctx.db
-      .query("articles")
-      .withIndex("by_date")
-      .order("desc")
-      .paginate(args.paginationOpts);
-
-    return {
-      ...result,
-      page: result.page.map((article) => ({
-        _id: article._id,
-        title: article.title,
-        slug: article.slug,
-        date: article.date,
-        tags: article.tags,
-      })),
-    };
-  },
 });
 
 export const getHomeArticleCount = query({
@@ -163,7 +120,7 @@ export const getArticlesByTag = query({
   args: {
     tag: v.string(),
   },
-  returns: v.array(articleByTagItemValidator),
+  returns: v.array(articleListItemValidator),
   handler: async (ctx, { tag }) => {
     if (!tag.trim()) {
       return [];
@@ -185,34 +142,9 @@ export const getArticlesByTag = query({
         _id: article._id,
         title: article.title,
         slug: article.slug,
-        excerpt: article.excerpt,
         tags: article.tags,
         date: article.date,
       }));
-  },
-});
-
-export const getArticleById = query({
-  args: { id: v.id("articles") },
-  returns: v.union(fullArticleValidator, v.null()),
-  handler: async (ctx, { id }) => {
-    return await ctx.db.get("articles", id);
-  },
-});
-
-/** Legacy lookup by decorative Unicode slug (redirect resolution). */
-export const getArticleBySlug = query({
-  args: { slug: v.string() },
-  returns: v.union(fullArticleValidator, v.null()),
-  handler: async (ctx, { slug }) => {
-    if (!slug.trim()) {
-      return null;
-    }
-
-    return await ctx.db
-      .query("articles")
-      .withIndex("by_slug", (q) => q.eq("slug", slug))
-      .unique();
   },
 });
 

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { HomeArticleIndex } from "@/components/articles/home-article-index";
 import { ArticleListSkeleton } from "@/components/articles/articles-skeleton";
-import { getHomeArticleCount, getHomeArticlePage } from "@/lib/convex-cache";
+import { getHomeArticleCount } from "@/lib/convex-cache";
 import { homeStaticParamsFromCount, parseHomePageParam } from "@/lib/home-pagination";
 
 export async function generateStaticParams() {
@@ -36,11 +36,6 @@ export default async function HomePagedPage({
   }
   if (page === 1) {
     redirect("/");
-  }
-
-  const result = await getHomeArticlePage(page);
-  if (result.totalPages === 0 || page > result.totalPages) {
-    notFound();
   }
 
   return (

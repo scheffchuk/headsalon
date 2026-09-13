@@ -1,6 +1,6 @@
-export const HOME_PAGE_SIZE = 30;
+const HOME_PAGE_SIZE = 30;
 
-export type HomePagerItem =
+type HomePagerItem =
   | { type: "page"; page: number }
   | { type: "ellipsis"; key: string };
 

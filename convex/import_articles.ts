@@ -2,22 +2,9 @@
 
 import { v } from "convex/values";
 import { action } from "./_generated/server";
-import { RAG } from "@convex-dev/rag";
-import { openai } from "@ai-sdk/openai";
-import { components } from "./_generated/api";
-import {
-  ARTICLE_RAG_FILTER_NAMES,
-  ARTICLE_RAG_NAMESPACE,
-  type ArticleRagFilters,
-} from "./articleRag";
+import { ARTICLE_RAG_NAMESPACE } from "./articleRag";
+import { addArticle, articleRag } from "./rag_search";
 
-const rag = new RAG<ArticleRagFilters>(components.rag, {
-  textEmbeddingModel: openai.embedding("text-embedding-3-large"),
-  embeddingDimension: 3072,
-  filterNames: [...ARTICLE_RAG_FILTER_NAMES],
-});
-
-// Article type from the JSONL export
 const ArticleValidator = v.object({
   _creationTime: v.number(),
   _id: v.string(),
@@ -29,7 +16,6 @@ const ArticleValidator = v.object({
   title: v.string(),
 });
 
-// Import articles from JSONL data in batches
 export const importArticlesBatch = action({
   args: {
     articles: v.array(ArticleValidator),
@@ -45,7 +31,7 @@ export const importArticlesBatch = action({
   }),
   handler: async (ctx, { articles, batchIndex = 0 }) => {
     console.log(
-      `Starting import batch ${batchIndex} with ${articles.length} articles`
+      `Starting import batch ${batchIndex} with ${articles.length} articles`,
     );
 
     let imported = 0;
@@ -54,8 +40,7 @@ export const importArticlesBatch = action({
 
     for (const article of articles) {
       try {
-        // Check if article already exists in RAG system
-        const existsCheck = await rag.search(ctx, {
+        const existsCheck = await articleRag.search(ctx, {
           namespace: ARTICLE_RAG_NAMESPACE,
           query: article._id,
           limit: 1,
@@ -63,34 +48,20 @@ export const importArticlesBatch = action({
         });
 
         const exists = existsCheck.entries.some(
-          (entry) => entry.key === article._id
+          (entry) => entry.key === article._id,
         );
 
         if (!exists) {
-          // Combine title and content for better searchability
-          const fullText = `${article.title}\n\n${article.content}`;
-
-          // Add content to RAG with full metadata for filtering
-          // Handle multiple tags by creating a single combined tag filter
-          const tagString = article.tags.join("|"); // Join tags with separator
-
-          await rag.add(ctx, {
-            namespace: ARTICLE_RAG_NAMESPACE,
-            text: fullText,
-            key: article._id, // Use article._id as unique key
-            importance: 1.0, // All articles have equal importance
-            filterValues: [
-              { name: "slug", value: article.slug },
-              { name: "date", value: article.date },
-              { name: "creationTime", value: article._creationTime.toString() },
-              { name: "tag", value: tagString }, // Single tag field with all tags
-              { name: "title", value: article.title },
-            ],
+          await addArticle(ctx, {
+            articleId: article._id,
+            title: article.title,
+            slug: article.slug,
+            content: article.content,
+            tags: article.tags,
+            date: article.date,
+            creationTime: article._creationTime,
           });
-
           imported++;
-
-          // Log first few articles to avoid log overflow
           if (imported <= 5) {
             console.log(`Imported: ${article.title}`);
           }
@@ -104,106 +75,17 @@ export const importArticlesBatch = action({
         errors++;
         console.error(
           `Failed to import article ${article._id} (${article.title}):`,
-          error
+          error,
         );
       }
     }
 
     console.log(
-      `Batch ${batchIndex} completed: imported ${imported}, skipped ${skipped}, errors ${errors}`
+      `Batch ${batchIndex} completed: imported ${imported}, skipped ${skipped}, errors ${errors}`,
     );
 
     return {
       batchIndex,
-      totalArticles: articles.length,
-      imported,
-      skipped,
-      errors,
-      success: errors === 0,
-    };
-  },
-});
-
-// Note: JSONL parsing removed - use prepare_large_batch.js script instead
-
-// Simple import helper for smaller datasets (direct array input)
-export const importArticlesSimple = action({
-  args: {
-    articles: v.array(ArticleValidator),
-  },
-  returns: v.object({
-    batchIndex: v.number(),
-    totalArticles: v.number(),
-    imported: v.number(),
-    skipped: v.number(),
-    errors: v.number(),
-    success: v.boolean(),
-  }),
-  handler: async (ctx, { articles }) => {
-    // Process articles directly without self-reference
-    console.log(`Starting simple import with ${articles.length} articles`);
-
-    let imported = 0;
-    let skipped = 0;
-    let errors = 0;
-
-    for (const article of articles) {
-      try {
-        // Check if article already exists in RAG system
-        const existsCheck = await rag.search(ctx, {
-          namespace: ARTICLE_RAG_NAMESPACE,
-          query: article._id,
-          limit: 1,
-          vectorScoreThreshold: 0.1,
-        });
-
-        const exists = existsCheck.entries.some(
-          (entry) => entry.key === article._id
-        );
-
-        if (!exists) {
-          // Combine title and content for better searchability
-          const fullText = `${article.title}\n\n${article.content}`;
-
-          // Add content to RAG with full metadata for filtering
-          // Handle multiple tags by creating a single combined tag filter
-          const tagString = article.tags.join("|"); // Join tags with separator
-
-          await rag.add(ctx, {
-            namespace: ARTICLE_RAG_NAMESPACE,
-            text: fullText,
-            key: article._id, // Use article._id as unique key
-            importance: 1.0, // All articles have equal importance
-            filterValues: [
-              { name: "slug", value: article.slug },
-              { name: "date", value: article.date },
-              { name: "creationTime", value: article._creationTime.toString() },
-              { name: "tag", value: tagString }, // Single tag field with all tags
-              { name: "title", value: article.title },
-            ],
-          });
-
-          imported++;
-          console.log(`Imported: ${article.title}`);
-        } else {
-          skipped++;
-          console.log(`Skipped (already exists): ${article.title}`);
-        }
-      } catch (error) {
-        errors++;
-        console.error(
-          `Failed to import article ${article._id} (${article.title}):`,
-          error
-        );
-      }
-    }
-
-    console.log(
-      `Simple import completed: imported ${imported}, skipped ${skipped}, errors ${errors}`
-    );
-
-    return {
-      batchIndex: 0,
       totalArticles: articles.length,
       imported,
       skipped,

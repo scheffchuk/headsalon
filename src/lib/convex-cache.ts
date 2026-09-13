@@ -9,13 +9,6 @@ export async function getArticleByParam(param: string) {
   return fetchQuery(api.articles.getArticleByParam, { param });
 }
 
-export async function getArticleBySlug(slug: string) {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("articles", `article-slug-${slug}`);
-  return fetchQuery(api.articles.getArticleBySlug, { slug });
-}
-
 export async function getArticlesByTag(tag: string) {
   "use cache";
   cacheLife("hours");

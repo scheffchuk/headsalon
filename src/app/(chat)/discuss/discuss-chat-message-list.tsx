@@ -24,11 +24,13 @@ import {
   ToolInput,
 } from "@/components/ai-elements/tool";
 import { Loader } from "@/components/ai-elements/loader";
+import type { useChat } from "@ai-sdk/react";
 import { DiscussChatCopyAction } from "./discuss-chat-copy-action";
-import { useDiscussChatContext } from "./discuss-chat-context";
 
-export function DiscussChatMessageList() {
-  const { messages, status } = useDiscussChatContext();
+export function DiscussChatMessageList({
+  messages,
+  status,
+}: Pick<ReturnType<typeof useChat>, "messages" | "status">) {
   return (
     <>
       {messages.map((message) => {
