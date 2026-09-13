@@ -1,5 +1,5 @@
 import { MINUTE, RateLimiter } from "@convex-dev/rate-limiter";
-import { ConvexError, v } from "convex/values";
+import { v } from "convex/values";
 import { components } from "./_generated/api";
 import { internalMutation } from "./_generated/server";
 
@@ -69,13 +69,13 @@ export const take = internalMutation({
     const globalConsumption = await rateLimiter.limit(ctx, names.global);
 
     if (!sessionConsumption.ok || !globalConsumption.ok) {
-      throw new ConvexError({
-        kind: "RateLimited",
+      return {
+        ok: false,
         retryAfter: Math.max(
           sessionConsumption.retryAfter ?? 0,
           globalConsumption.retryAfter ?? 0,
         ),
-      });
+      };
     }
 
     return { ok: true, retryAfter: null };

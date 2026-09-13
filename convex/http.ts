@@ -7,7 +7,6 @@ import {
   stepCountIs,
 } from "ai";
 import { z } from "zod";
-import { ConvexError } from "convex/values";
 import { internal } from "./_generated/api";
 
 const http = httpRouter();
@@ -17,20 +16,6 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   Vary: "origin",
 };
-
-function getRateLimitRetryAfter(error: unknown): number | null {
-  if (!(error instanceof ConvexError)) return null;
-  const data: unknown = error.data;
-  if (typeof data !== "object" || data === null) return null;
-
-  const payload = data as Record<string, unknown>;
-  return payload.kind === "RateLimited" &&
-    typeof payload.retryAfter === "number" &&
-    Number.isFinite(payload.retryAfter) &&
-    payload.retryAfter > 0
-    ? payload.retryAfter
-    : null;
-}
 
 function rateLimitedResponse(retryAfter: number): Response {
   return Response.json(
@@ -79,17 +64,10 @@ http.route({
   method: "POST",
   handler: httpAction(async (ctx, req) => {
     const sessionId = req.headers.get(SESSION_HEADER) ?? "anonymous";
-    let rateLimit;
-    try {
-      rateLimit = await ctx.runMutation(internal.rateLimits.take, {
-        operation: "chat",
-        sessionId,
-      });
-    } catch (error) {
-      const retryAfter = getRateLimitRetryAfter(error);
-      if (retryAfter !== null) return rateLimitedResponse(retryAfter);
-      throw error;
-    }
+    const rateLimit = await ctx.runMutation(internal.rateLimits.take, {
+      operation: "chat",
+      sessionId,
+    });
     if (!rateLimit.ok) {
       return rateLimitedResponse(rateLimit.retryAfter ?? 1_000);
     }
