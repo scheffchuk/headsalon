@@ -8,20 +8,25 @@ import {
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputTools,
+  type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
-import { useDiscussChatContext } from "./discuss-chat-context";
+import type { useChat } from "@ai-sdk/react";
 
 const suggestions = ["你是谁？", "什么是达尔萨斯主义", "AI将如何改变人类社会"];
 
-export function DiscussChatComposer() {
-  const {
-    messages,
-    status,
-    stop,
-    handleSubmit,
-    handleSuggestionClick,
-  } = useDiscussChatContext();
+type Chat = ReturnType<typeof useChat>;
+
+export function DiscussChatComposer({
+  messages,
+  status,
+  stop,
+  handleSubmit,
+  handleSuggestionClick,
+}: Pick<Chat, "messages" | "status" | "stop"> & {
+  handleSubmit: (message: PromptInputMessage) => void;
+  handleSuggestionClick: (suggestion: string) => void;
+}) {
   return (
     <div className="sticky bottom-0 mx-auto w-full max-w-3xl px-4">
       <ConversationScrollButton className="absolute -top-12 left-1/2 -translate-x-1/2" />

@@ -12,9 +12,9 @@ Vocabulary for the blog/chat app backed by Convex. Use these terms consistently 
 
 **RAG search** — Semantic retrieval over embedded article chunks via Convex action `rag_search.searchArticlesRAG`; result shape lives in `convex/searchResult.ts` as validators + inferred `SearchResult` type.
 
-**Discuss chat** — Client-only assistant UI under `/discuss`, gated by `NEXT_PUBLIC_AI_CHAT_ENABLED`; bundled behind `next/dynamic` with `ssr: false`.
+**Discuss chat** — Client-only assistant UI under `/discuss`, gated by `NEXT_PUBLIC_AI_CHAT_ENABLED`. Next is one client module (`discuss-chat-client`); the deep seam is `convex/http.ts` (`POST /api/chat`).
 
-**RAG search bar** — Narrow UI for `/search`: text input, optional local history (`headsalon-search-history`), callback-only search (no URL sync unless `urlSync` is implemented later).
+**RAG search bar** — Narrow UI for `/search`: text input, optional local history (`headsalon-search-history`). Commits the query to the `q` search param (nuqs); the RAG search module turns that committed query into `SearchResult[]`.
 
 ## Relationships
 

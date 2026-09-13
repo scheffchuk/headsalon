@@ -3,46 +3,31 @@ import { ViewTransition } from "react";
 import type { Metadata } from "next";
 import { cacheLife, cacheTag } from "next/cache";
 import { notFound, permanentRedirect } from "next/navigation";
-import { getArticleByParam } from "@/lib/convex-cache";
+import { lookupArticle } from "@/lib/article-lookup";
 import { articleUrl } from "@/lib/urls";
 import { Article } from "./article";
 import { ArticleWithScrollProgress } from "./article-with-scroll-progress";
 import { ArticleSkeleton } from "@/components/article/article-skeleton";
-
-async function resolveArticle(param: string) {
-  const article = await getArticleByParam(param);
-  if (!article) {
-    return { article: null, legacyRedirect: null as string | null };
-  }
-
-  if (param !== article._id) {
-    return {
-      article,
-      legacyRedirect: articleUrl(article),
-    };
-  }
-
-  return { article, legacyRedirect: null as string | null };
-}
 
 async function getArticleMetadata(id: string): Promise<Metadata> {
   "use cache";
   cacheLife("hours");
   cacheTag("articles", `article-${id}`);
 
-  const { article, legacyRedirect } = await resolveArticle(id);
+  const result = await lookupArticle(id);
 
-  if (legacyRedirect) {
-    return {};
-  }
-
-  if (!article) {
+  if (result === null) {
     return {
       title: "文章未找到",
       description: "所请求的文章不存在",
     };
   }
 
+  if (result.kind === "redirect") {
+    return {};
+  }
+
+  const { article } = result;
   const description =
     article.excerpt ||
     article.content?.slice(0, 160) + "..." ||
@@ -96,19 +81,19 @@ export default function ArticlePage({ params }: PageProps<"/articles/[id]">) {
 }
 
 async function ArticleContent({ id }: { id: string }) {
-  const { article, legacyRedirect } = await resolveArticle(id);
+  const result = await lookupArticle(id);
 
-  if (legacyRedirect) {
-    permanentRedirect(legacyRedirect);
+  if (result === null) {
+    notFound();
   }
 
-  if (!article) {
-    notFound();
+  if (result.kind === "redirect") {
+    permanentRedirect(result.href);
   }
 
   return (
     <ArticleWithScrollProgress>
-      <Article article={article} />
+      <Article article={result.article} />
     </ArticleWithScrollProgress>
   );
 }

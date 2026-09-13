@@ -2,27 +2,23 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAction } from "convex/react";
-import { parseAsString, useQueryStates } from "nuqs";
-import type { FunctionReturnType } from "convex/server";
+import { parseAsString, useQueryState } from "nuqs";
+import type { SearchResult } from "@convex/searchResult";
 import { api } from "../../../convex/_generated/api";
 import { RagSearchBar } from "@/components/search/rag-search-bar";
 import { SearchResults } from "@/components/search/search-results";
+import { searchCommittedQuery } from "@/components/search/committed-rag-search";
 
 export function RagSearchExperience() {
   const searchAction = useAction(api.rag_search.searchArticlesRAG);
-  const [{ q: urlQuery, tag: tagFilter }, setSearchParams] = useQueryStates(
-    {
-      q: parseAsString.withDefault(""),
-      tag: parseAsString.withDefault(""),
-    },
-    { history: "push", shallow: false },
+  const [urlQuery, setUrlQuery] = useQueryState(
+    "q",
+    parseAsString.withDefault(""),
   );
 
   const [draftQuery, setDraftQuery] = useState(urlQuery);
   const [isEditing, setIsEditing] = useState(false);
-  const [results, setResults] = useState<
-    FunctionReturnType<typeof api.rag_search.searchArticlesRAG>
-  >([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const lastQueriedRef = useRef("");
 
@@ -30,7 +26,6 @@ export function RagSearchExperience() {
 
   useEffect(() => {
     const trimmed = urlQuery.trim();
-    const tag = tagFilter.trim();
 
     if (!trimmed) {
       setResults([]);
@@ -45,13 +40,9 @@ export function RagSearchExperience() {
 
     void (async () => {
       try {
-        const data = await searchAction({
-          query: trimmed,
-          limit: 30,
-          ...(tag ? { tagFilter: tag } : {}),
-        });
+        const data = await searchCommittedQuery(urlQuery, searchAction);
         if (!cancelled && lastQueriedRef.current === trimmed) {
-          setResults(Array.isArray(data) ? data : []);
+          setResults(data);
         }
       } catch (err) {
         console.error("Search failed:", err);
@@ -68,15 +59,12 @@ export function RagSearchExperience() {
     return () => {
       cancelled = true;
     };
-  }, [urlQuery, tagFilter, searchAction]);
+  }, [urlQuery, searchAction]);
 
   const handleSearch = (searchQuery: string) => {
     const trimmed = searchQuery.trim();
     setIsEditing(false);
-    void setSearchParams({
-      q: trimmed || null,
-      tag: tagFilter.trim() || null,
-    });
+    void setUrlQuery(trimmed || null);
   };
 
   return (

@@ -16,7 +16,7 @@ The app depends on these pieces:
 
 - `/` — Chronological index, page 1. Rendered by `HomeArticleIndex` (`src/components/articles/home-article-index.tsx`).
 - `/page/N` — Index pages 2 through N, 30 articles each. `/page/1` redirects to `/`. A page past the end returns 404.
-- `/articles/[id]` — One article by Convex id. A legacy slug in the URL resolves through `articles.getArticleByParam` and permanently redirects to the id URL.
+- `/articles/[id]` — One article by Convex id. `lookupArticle` (`src/lib/article-lookup.ts`) calls `articles.getArticleByParam` and returns `{ kind: "article" | "redirect" }` or null. The route only renders or 301s.
 - `/tag/[tag]` — Tag index: articles that share one tag, via `articles.getArticlesByTag`.
 - `/search` — RAG search. The client calls the action `rag_search.searchArticlesRAG`.
 - `/discuss` — Discuss chat. Renders `ChatMaintenance` unless `NEXT_PUBLIC_AI_CHAT_ENABLED` is `true`. The client posts to the Convex HTTP route `POST /api/chat`.
@@ -65,7 +65,7 @@ npx convex dev
 
 3. Set the Next.js environment variables in `.env.local`. The file is gitignored.
 
-- `NEXT_PUBLIC_CONVEX_URL` — Deployment URL, `https://<name>.convex.cloud`. `npx convex dev` writes this value for you. The chat client derives the HTTP base by replacing `.cloud` with `.site` (`src/app/(chat)/discuss/use-discuss-chat.ts`). If the variable is missing, `ConvexClientProvider` renders without a client.
+- `NEXT_PUBLIC_CONVEX_URL` — Deployment URL, `https://<name>.convex.cloud`. `npx convex dev` writes this value for you. The chat client derives the HTTP base by replacing `.cloud` with `.site` (`src/app/(chat)/discuss/discuss-chat-client.tsx`). If the variable is missing, the search-scoped `ConvexClientProvider` renders without a client.
 - `NEXT_PUBLIC_AI_CHAT_ENABLED` — Set to `true` to enable `/discuss`. Any other value shows the maintenance page.
 
 4. Set provider keys on the Convex deployment (dashboard, Settings, Environment Variables), not in the repo. Embeddings use `openai.embedding("text-embedding-3-large")` from `@ai-sdk/openai`, which reads `OPENAI_API_KEY`. The chat model is the gateway string `xai/grok-4.5` in `convex/http.ts`, which the AI SDK resolves through Vercel AI Gateway with `AI_GATEWAY_API_KEY`.
@@ -95,9 +95,9 @@ Tests run under vitest with jsdom for `src/**` and Node for `convex/**/*.test.ts
 
 ## Content
 
-- `articles` — `title`, `slug`, Markdown `content`, optional `excerpt`, `tags`, ISO `date`. Indexes `by_slug`, `by_date`, `by_tags`.
+- `articles` — `title`, `slug`, Markdown `content`, optional `excerpt`, `tags`, ISO `date`. Indexes `by_slug`, `by_tags`.
 - `articleTags` — Join rows with `articleId`, `tag`, and `articleDate`. Index `by_tag_and_articleDate` drives tag pages. `migrations.backfillArticleTags` fills in missing rows.
-- RAG — The actions `importArticlesBatch` and `importArticlesSimple` in `convex/import_articles.ts` embed `title` plus `content` into the RAG namespace `articles`, keyed by article `_id`, with the filters listed in `convex/articleRag.ts`. `rag_search.searchArticlesRAG` searches that namespace and returns the `SearchResult` shape from `convex/searchResult.ts`.
+- RAG — `importArticlesBatch` (`convex/import_articles.ts`) embeds `title` plus `content` through the RAG article module (`convex/articleRag.ts` + `addArticle` in `convex/rag_search.ts`). `rag_search.searchArticlesRAG` searches that namespace and returns the `SearchResult` shape from `convex/searchResult.ts`. The Convex client adapter is scoped to `/search`, not the root layout.
 
 ## Docs
 

@@ -1,243 +1,68 @@
 "use node";
 
 import { v } from "convex/values";
-import { action, ActionCtx } from "./_generated/server";
 import { RAG } from "@convex-dev/rag";
 import { openai } from "@ai-sdk/openai";
 import { components } from "./_generated/api";
+import type { ActionCtx } from "./_generated/server";
+import { action } from "./_generated/server";
 import {
   ARTICLE_RAG_FILTER_NAMES,
   ARTICLE_RAG_NAMESPACE,
+  articleRagFilterValues,
+  articleRagText,
+  preprocessChineseQuery,
+  projectSearchResults,
   type ArticleRagFilters,
+  type ArticleRagInput,
 } from "./articleRag";
-import {
-  SearchResultValidator,
-  type SearchResult,
-} from "./searchResult";
+import { SearchResultValidator } from "./searchResult";
 
-const rag = new RAG<ArticleRagFilters>(components.rag, {
+export const articleRag = new RAG<ArticleRagFilters>(components.rag, {
   textEmbeddingModel: openai.embedding("text-embedding-3-large"),
   embeddingDimension: 3072,
   filterNames: [...ARTICLE_RAG_FILTER_NAMES],
 });
 
-function preprocessChineseQuery(query: string): string {
-  let processed = query.trim().replace(/\s+/g, " ");
-
-  processed = processed
-    .replace(/，/g, ",")
-    .replace(/；/g, ";")
-    .replace(/：/g, ":")
-    .replace(/"|"/g, '"')
-    .replace(/'/g, "'");
-
-  const chineseChars = processed.match(/[\u4e00-\u9fff]/g)?.length || 0;
-  if (chineseChars <= 2 && chineseChars > 0) {
-    processed = `关于${processed}的内容`;
-  }
-
-  return processed;
-}
-
-function transformSearchResults(
-  searchResult: Awaited<ReturnType<typeof rag.search>>,
-  limit: number
-): SearchResult[] {
-  const { results, entries } = searchResult;
-
-  if (!results || !entries) {
-    return [];
-  }
-
-  // Deduplicate by article key and take highest scoring results
-  const articleMap = new Map<
-    string,
-    { result: (typeof results)[number]; entry: (typeof entries)[number] }
-  >();
-
-  results.forEach((result) => {
-    const entry = entries.find((e) => e.entryId === result.entryId);
-    if (!entry) return;
-
-    const articleId = entry.key || entry.entryId;
-    if (
-      !articleMap.has(articleId) ||
-      result.score > (articleMap.get(articleId)?.result.score || 0)
-    ) {
-      articleMap.set(articleId, { result, entry });
-    }
+export async function addArticle(
+  ctx: ActionCtx,
+  article: ArticleRagInput,
+): Promise<void> {
+  await articleRag.add(ctx, {
+    namespace: ARTICLE_RAG_NAMESPACE,
+    text: articleRagText(article),
+    key: article.articleId,
+    importance: 1.0,
+    filterValues: articleRagFilterValues(article),
   });
-
-  return Array.from(articleMap.values())
-    .slice(0, limit)
-    .map(({ result, entry }) => {
-      // Extract filter values
-      const filters = new Map(
-        entry.filterValues?.map((f) => [f.name, f.value]) || []
-      );
-
-      // Process tags
-      const tagValue = filters.get("tag") || "";
-      const tags =
-        typeof tagValue === "string" ? tagValue.split("|").filter(Boolean) : [];
-
-      const title = filters.get("title") || "Untitled";
-      const slug = filters.get("slug") || "";
-      const articleId = entry.key || entry.entryId;
-
-      // Create relevant chunks (max 3 for semantic search)
-      const relevantChunks =
-        result.content?.slice(0, 3).map((chunk) => ({
-          content: chunk.text || "",
-          score: result.score,
-        })) || [];
-
-      return {
-        _id: articleId,
-        articleId,
-        title,
-        slug,
-        tags,
-        date: filters.get("date") || "",
-        score: result.score,
-        relevantChunks,
-        _meta: {
-          searchType: "rag_semantic",
-          semanticScore: result.score,
-        },
-      };
-    });
 }
-
-export const addArticleToRAG = action({
-  args: {
-    articleId: v.string(),
-    title: v.string(),
-    slug: v.string(),
-    content: v.string(),
-    excerpt: v.optional(v.string()),
-    tags: v.array(v.string()),
-    date: v.string(),
-  },
-  returns: v.object({
-    success: v.boolean(),
-    articleId: v.string(),
-  }),
-  handler: async (
-    ctx: ActionCtx,
-    { articleId, title, slug, content, tags, date }
-  ) => {
-    try {
-      const fullText = `${title}\n\n${content}`;
-      const tagString = tags.join("|");
-
-      await rag.add(ctx, {
-        namespace: ARTICLE_RAG_NAMESPACE,
-        text: fullText,
-        key: articleId,
-        importance: 1.0,
-        filterValues: [
-          { name: "slug", value: slug },
-          { name: "date", value: date },
-          { name: "creationTime", value: Date.now().toString() },
-          { name: "tag", value: tagString },
-          { name: "title", value: title },
-        ],
-      });
-
-      console.log(`Successfully added article to RAG: ${title} (${articleId})`);
-      return { success: true, articleId };
-    } catch (error) {
-      console.error(
-        `Failed to add article to RAG: ${title} (${articleId})`,
-        error
-      );
-      throw error;
-    }
-  },
-});
 
 export const searchArticlesRAG = action({
   args: {
     query: v.string(),
     limit: v.optional(v.number()),
-    tagFilter: v.optional(v.string()),
     similarityThreshold: v.optional(v.number()),
   },
   returns: v.array(SearchResultValidator),
   handler: async (
-    ctx: ActionCtx,
-    { query, limit = 20, tagFilter, similarityThreshold = 0.3 }
+    ctx,
+    { query, limit = 20, similarityThreshold = 0.3 },
   ) => {
     if (!query.trim()) return [];
 
     try {
-      const processedQuery = preprocessChineseQuery(query);
-
-      // Use official RAG search API with performance optimizations
-      const searchResult = await rag.search(ctx, {
+      const searchResult = await articleRag.search(ctx, {
         namespace: ARTICLE_RAG_NAMESPACE,
-        query: processedQuery,
+        query: preprocessChineseQuery(query),
         limit: Math.min(limit * 2, 100),
         vectorScoreThreshold: similarityThreshold,
-        chunkContext: { before: 1, after: 1 }, // Better context for Chinese text
-        ...(tagFilter && {
-          filterValues: [{ name: "tag", value: tagFilter }],
-        }),
+        chunkContext: { before: 1, after: 1 },
       });
 
-      const transformedResults = transformSearchResults(searchResult, limit);
-
-      console.log(
-        `RAG search for "${query}" returned ${transformedResults.length} results`
-      );
-
-      return transformedResults;
+      return projectSearchResults(searchResult, limit);
     } catch (error) {
       console.error("Error in RAG search:", error);
       return [];
-    }
-  },
-});
-
-export const getAvailableTags = action({
-  args: {},
-  returns: v.object({
-    tags: v.array(v.string()),
-    count: v.number(),
-  }),
-  handler: async (ctx: ActionCtx) => {
-    try {
-      const searchResult = await rag.search(ctx, {
-        namespace: ARTICLE_RAG_NAMESPACE,
-        query: "文章",
-        limit: 3000,
-        vectorScoreThreshold: 0.05,
-      });
-
-      const allTags = new Set<string>();
-
-      if (searchResult.entries) {
-        searchResult.entries.forEach((entry) => {
-          const tagValue = entry.filterValues?.find(
-            (f) => f.name === "tag"
-          )?.value;
-          if (typeof tagValue === "string") {
-            tagValue.split("|").forEach((tag) => {
-              const trimmedTag = tag.trim();
-              if (trimmedTag) allTags.add(trimmedTag);
-            });
-          }
-        });
-      }
-
-      const sortedTags = Array.from(allTags).sort();
-      console.log(`Found ${sortedTags.length} unique tags in RAG system`);
-
-      return { tags: sortedTags, count: sortedTags.length };
-    } catch (error) {
-      console.error("Error getting available tags:", error);
-      return { tags: [], count: 0 };
     }
   },
 });

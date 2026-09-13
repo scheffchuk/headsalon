@@ -11,7 +11,6 @@ const schema = defineSchema({
     date: v.string(),
   })
     .index("by_slug", ["slug"])
-    .index("by_date", ["date"])
     .index("by_tags", ["tags"]),
 
   articleTags: defineTable({
