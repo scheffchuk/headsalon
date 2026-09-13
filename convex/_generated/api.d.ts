@@ -16,6 +16,7 @@ import type * as lib_articleAggregate from "../lib/articleAggregate.js";
 import type * as lib_functions from "../lib/functions.js";
 import type * as migrations from "../migrations.js";
 import type * as rag_search from "../rag_search.js";
+import type * as rateLimits from "../rateLimits.js";
 import type * as searchResult from "../searchResult.js";
 
 import type {
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   "lib/functions": typeof lib_functions;
   migrations: typeof migrations;
   rag_search: typeof rag_search;
+  rateLimits: typeof rateLimits;
   searchResult: typeof searchResult;
 }>;
 
@@ -65,4 +67,5 @@ export declare const internal: FilterApi<
 export declare const components: {
   rag: import("@convex-dev/rag/_generated/component.js").ComponentApi<"rag">;
   articleAggregate: import("@convex-dev/aggregate/_generated/component.js").ComponentApi<"articleAggregate">;
+  rateLimiter: import("@convex-dev/rate-limiter/_generated/component.js").ComponentApi<"rateLimiter">;
 };
