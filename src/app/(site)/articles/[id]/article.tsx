@@ -35,7 +35,7 @@ export function Article({ article }: { article: Doc<"articles"> | null }) {
         {article.tags?.length ? (
           <div className="flex flex-wrap gap-2 mt-4">
             {article.tags.map((tag) => (
-              <Link key={tag} href={tagUrl(tag)}>
+              <Link key={tag} href={tagUrl(tag)} prefetch={true}>
                 <Badge
                   variant="secondary"
                   className="hover:bg-primary hover:text-primary-foreground transition-colors"

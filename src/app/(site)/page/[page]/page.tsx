@@ -26,9 +26,19 @@ export async function generateMetadata({
   };
 }
 
-export default async function HomePagedPage({
+export default function HomePagedPage({
   params,
 }: PageProps<"/page/[page]">) {
+  return (
+    <Suspense fallback={<ArticleListSkeleton />}>
+      <HomePagedIndex params={params} />
+    </Suspense>
+  );
+}
+
+async function HomePagedIndex({
+  params,
+}: Pick<PageProps<"/page/[page]">, "params">) {
   const { page: pageParam } = await params;
   const page = parseHomePageParam(pageParam);
   if (page === null) {
@@ -37,10 +47,5 @@ export default async function HomePagedPage({
   if (page === 1) {
     redirect("/");
   }
-
-  return (
-    <Suspense fallback={<ArticleListSkeleton />}>
-      <HomeArticleIndex page={page} />
-    </Suspense>
-  );
+  return <HomeArticleIndex page={page} />;
 }

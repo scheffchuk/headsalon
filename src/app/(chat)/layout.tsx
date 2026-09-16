@@ -16,6 +16,7 @@ export default function ChatLayout({
 
         <Link
           href="/"
+          prefetch={true}
           className="fixed top-4 left-4 z-50 inline-flex items-center gap-2 rounded-sm p-2 font-medium text-foreground shadow-sm ring-primary/5 backdrop-blur-3xl transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring bg-background/80"
         >
           <ArrowLeftIcon aria-hidden className="size-4 shrink-0" />

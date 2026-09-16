@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ViewTransition } from "react";
 import { Badge } from "@/components/ui/badge";
+import { LinkPending } from "@/components/ui/link-pending";
 import { formatDate } from "@/lib/utils";
 import { articleUrl, tagUrl } from "@/lib/urls";
 import type { ArticlePreview } from "@convex/searchResult";
@@ -25,7 +26,7 @@ export function ArticlePreviewRow({
         : {})}
     >
       <h2 className="text-3xl font-semibold text-brand hover:text-brand/80 focus-visible:text-brand/80 transition-colors mb-3">
-        {article.title}
+        <LinkPending>{article.title}</LinkPending>
       </h2>
     </Link>
   );

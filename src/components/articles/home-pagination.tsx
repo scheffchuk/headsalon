@@ -31,6 +31,7 @@ export function HomePagination({
           <PaginationItem>
             <PaginationPrevious
               href={atFirst ? homePageHref(page) : homePageHref(page - 1)}
+              prefetch={true}
               aria-disabled={atFirst || undefined}
             />
           </PaginationItem>
@@ -43,6 +44,7 @@ export function HomePagination({
               <PaginationItem key={item.page}>
                 <PaginationLink
                   href={homePageHref(item.page)}
+                  prefetch={true}
                   isActive={item.page === page}
                 >
                   {item.page}
@@ -53,6 +55,7 @@ export function HomePagination({
           <PaginationItem>
             <PaginationNext
               href={atLast ? homePageHref(page) : homePageHref(page + 1)}
+              prefetch={true}
               aria-disabled={atLast || undefined}
             />
           </PaginationItem>
