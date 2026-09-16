@@ -5,6 +5,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
 import { getArticlesByTag } from "@/lib/convex-cache";
 import { tagUrl } from "@/lib/urls";
+import { ArticleCardSkeleton } from "@/components/article/article-card-skeleton";
 import { ArticlePreviewRow } from "@/components/articles/article-preview-row";
 
 async function getTagMetadata(tag: string): Promise<Metadata> {
@@ -55,23 +56,33 @@ export default function TagPage({ params }: PageProps<"/tag/[tag]">) {
   return (
     <ViewTransition>
       <div className="mx-auto mt-16 pb-8">
-        <header className="mb-8">
-          <Suspense
-            fallback={
-              <h1 className="text-3xl font-bold text-foreground mb-2">标签：</h1>
-            }
-          >
-            {params.then(({ tag }) => (
-              <TagPageContent encodedTag={tag} />
-            ))}
-          </Suspense>
-        </header>
+        <Suspense
+          fallback={
+            <>
+              <header className="mb-8">
+                <h1 className="text-3xl font-bold text-foreground mb-2">
+                  标签：
+                </h1>
+              </header>
+              <div className="space-y-8">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <ArticleCardSkeleton key={index} />
+                ))}
+              </div>
+            </>
+          }
+        >
+          <TagPageContent params={params} />
+        </Suspense>
       </div>
     </ViewTransition>
   );
 }
 
-async function TagPageContent({ encodedTag }: { encodedTag: string }) {
+async function TagPageContent({
+  params,
+}: Pick<PageProps<"/tag/[tag]">, "params">) {
+  const { tag: encodedTag } = await params;
   const decodedTag = decodeURIComponent(encodedTag);
   const articles = await getArticlesByTag(decodedTag);
 
@@ -81,10 +92,14 @@ async function TagPageContent({ encodedTag }: { encodedTag: string }) {
 
   return (
     <>
-      <h1 className="text-3xl font-bold text-foreground mb-2">
-        标签：{decodedTag}
-      </h1>
-      <p className="text-muted-foreground">找到 {articles.length} 篇相关文章</p>
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground mb-2">
+          标签：{decodedTag}
+        </h1>
+        <p className="text-muted-foreground">
+          找到 {articles.length} 篇相关文章
+        </p>
+      </header>
       <TagArticlesList articles={articles} displayTag={decodedTag} />
     </>
   );

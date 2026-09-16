@@ -41,7 +41,6 @@ async function SearchPageContent({
   return (
     <>
       <header className="mb-8">
-        <h1 className="mb-4 text-3xl font-bold">搜索文章</h1>
         <RagSearchExperience
           key={search.retryAfter ?? "search"}
           initialRetryAfter={search.retryAfter}
@@ -63,6 +62,7 @@ export default function Search({ searchParams }: PageProps<"/search">) {
   return (
     <ViewTransition>
       <div className="mx-auto mt-16">
+        <h1 className="mb-4 text-3xl font-bold">搜索文章</h1>
         <Suspense fallback={<SearchStates state="loading" />}>
           <SearchPageContent searchParams={searchParams} />
         </Suspense>

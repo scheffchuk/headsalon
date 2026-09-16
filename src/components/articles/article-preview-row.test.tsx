@@ -7,16 +7,18 @@ vi.mock("next/link", () => ({
   default: ({
     children,
     href,
+    prefetch,
     ...rest
   }: {
     children: ReactNode;
     href: string;
     prefetch?: boolean;
   }) => (
-    <a href={href} {...rest}>
+    <a href={href} data-prefetch={prefetch ? "true" : undefined} {...rest}>
       {children}
     </a>
   ),
+  useLinkStatus: () => ({ pending: false }),
 }));
 
 describe("ArticlePreviewRow", () => {
@@ -38,6 +40,7 @@ describe("ArticlePreviewRow", () => {
     expect(title.closest("a")?.getAttribute("href")).toBe(
       "/articles/j57abc123def4567890123456789012",
     );
+    expect(title.closest("a")).toHaveAttribute("data-prefetch", "true");
     expect(screen.getByRole("link", { name: "topic" }).getAttribute("href")).toBe(
       "/tag/topic",
     );

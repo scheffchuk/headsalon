@@ -7,13 +7,14 @@ vi.mock("next/link", () => ({
   default: ({
     children,
     href,
+    prefetch,
     ...rest
   }: {
     children: ReactNode;
     href: string;
     prefetch?: boolean;
   }) => (
-    <a href={href} {...rest}>
+    <a href={href} data-prefetch={prefetch ? "true" : undefined} {...rest}>
       {children}
     </a>
   ),
@@ -35,6 +36,10 @@ describe("HomePagination", () => {
     expect(screen.getByRole("link", { name: /next/i })).toHaveAttribute(
       "href",
       "/page/2",
+    );
+    expect(screen.getByRole("link", { name: /next/i })).toHaveAttribute(
+      "data-prefetch",
+      "true",
     );
     expect(screen.getByRole("link", { name: /next/i })).not.toHaveAttribute(
       "aria-disabled",
