@@ -1,10 +1,13 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
+import { convexGateway } from "@convex-dev/ai-sdk-provider";
 import {
   convertToModelMessages,
+  createUIMessageStreamResponse,
+  isStepCount,
   streamText,
+  toUIMessageStream,
   tool,
-  stepCountIs,
 } from "ai";
 import { z } from "zod";
 import { internal } from "./_generated/api";
@@ -78,10 +81,10 @@ http.route({
     const lastMessages = messages.slice(-10);
 
     const result = streamText({
-      model: "xai/grok-4.5",
+      model: convexGateway("x-ai/grok-4.5"),
       system: systemPrompt,
       messages: await convertToModelMessages(lastMessages),
-      stopWhen: stepCountIs(5),
+      stopWhen: isStepCount(5),
       tools: {
         findRelatedArticle: tool({
           description:
@@ -115,8 +118,9 @@ http.route({
       },
     });
 
-    return result.toUIMessageStreamResponse({
-      headers: new Headers(corsHeaders),
+    return createUIMessageStreamResponse({
+      headers: corsHeaders,
+      stream: toUIMessageStream({ stream: result.stream }),
     });
   }),
 });

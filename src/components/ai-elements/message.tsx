@@ -323,15 +323,40 @@ export type MessageResponseProps = ComponentProps<typeof Streamdown>;
 
 const streamdownPlugins = { cjk, code, math, mermaid };
 
+const messageComponents = {
+  a: ({
+    href,
+    children,
+    className,
+    node: _node,
+    ...props
+  }: ComponentProps<"a"> & { node?: unknown }) => (
+    <a
+      {...props}
+      className={cn(
+        "wrap-anywhere font-medium text-primary underline",
+        className,
+      )}
+      href={href}
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      {children}
+    </a>
+  ),
+};
+
 export const MessageResponse = memo(
   ({ className, ...props }: MessageResponseProps) => (
     <Streamdown
+      plugins={streamdownPlugins}
+      {...props}
       className={cn(
         "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
         className
       )}
-      plugins={streamdownPlugins}
-      {...props}
+      components={messageComponents}
+      linkSafety={{ enabled: false }}
     />
   ),
   (prevProps, nextProps) =>

@@ -9,7 +9,7 @@ The app depends on these pieces:
 - Next.js 16.3 App Router with `cacheComponents`, `partialPrefetching`, and `reactCompiler` on (`next.config.ts`), React 19
 - Convex: `articles` and `articleTags` tables (`convex/schema.ts`), `@convex-dev/aggregate` for the home page count and offset, `@convex-dev/rag` for embeddings and search, an HTTP route for chat streaming (`convex/http.ts`)
 - shadcn/ui components under `src/components/ui`, Vercel AI Elements under `src/components/ai-elements`, Tailwind v4
-- Vercel AI SDK (`ai`, `@ai-sdk/react`, `@ai-sdk/openai`)
+- Vercel AI SDK (`ai`, `@ai-sdk/react`) through the Convex AI Gateway (`@convex-dev/ai-sdk-provider`)
 - pnpm, vitest, ESLint (`eslint-config-next`), knip
 
 ## Routes
@@ -68,7 +68,7 @@ npx convex dev
 - `NEXT_PUBLIC_CONVEX_URL` — Deployment URL, `https://<name>.convex.cloud`. `npx convex dev` writes this value for you. The chat client derives the HTTP base by replacing `.cloud` with `.site` (`src/app/(chat)/discuss/discuss-chat-client.tsx`). Search results use the same URL via `fetchAction` on the server.
 - `NEXT_PUBLIC_AI_CHAT_ENABLED` — Set to `true` to enable `/discuss`. Any other value shows the maintenance page.
 
-4. Set provider keys on the Convex deployment (dashboard, Settings, Environment Variables), not in the repo. Embeddings use `openai.embedding("text-embedding-3-large")` from `@ai-sdk/openai`, which reads `OPENAI_API_KEY`. The chat model is the gateway string `xai/grok-4.5` in `convex/http.ts`, which the AI SDK resolves through Vercel AI Gateway with `AI_GATEWAY_API_KEY`.
+4. Chat and embeddings authenticate through the Convex AI Gateway. The deployment mints a short-lived token with `getServiceToken("ai-gateway")`; do not set `OPENAI_API_KEY` or `AI_GATEWAY_API_KEY`. The team needs a paid plan with gateway access, and a local backend must be linked to that project (`npx convex deployment select`). Chat uses `x-ai/grok-4.5` in `convex/http.ts`. Search embeddings call `openai/text-embedding-3-large`, and the RAG namespace keeps the id `text-embedding-3-large` at 3072 dimensions so the existing index still matches. Node actions run on Node 22 (`convex.json`).
 
 5. Start Next.js and open http://localhost:3000.
 

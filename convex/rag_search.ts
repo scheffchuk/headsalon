@@ -1,7 +1,7 @@
 "use node";
 
+import { convexGateway } from "@convex-dev/ai-sdk-provider";
 import { RAG } from "@convex-dev/rag";
-import { openai } from "@ai-sdk/openai";
 import { SessionIdArg } from "convex-helpers/server/sessions";
 import { ConvexError, v } from "convex/values";
 import { components, internal } from "./_generated/api";
@@ -17,8 +17,18 @@ import {
 } from "./articleRag";
 import { SearchResultValidator, type SearchResult } from "./searchResult";
 
+const gatewayEmbedding = convexGateway.embeddingModel(
+  "openai/text-embedding-3-large",
+);
+
 export const articleRag = new RAG<ArticleRagFilters>(components.rag, {
-  textEmbeddingModel: openai.embedding("text-embedding-3-large"),
+  textEmbeddingModel: {
+    ...gatewayEmbedding,
+    // Namespace rows store this id. doEmbed still sends the gateway model id.
+    modelId: "text-embedding-3-large",
+    doEmbed: (options: Parameters<typeof gatewayEmbedding.doEmbed>[0]) =>
+      gatewayEmbedding.doEmbed(options),
+  },
   embeddingDimension: 3072,
   filterNames: [...ARTICLE_RAG_FILTER_NAMES],
 });

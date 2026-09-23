@@ -3,6 +3,8 @@ allowBuilds:
   esbuild: true
   sharp: true
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@convex-dev/ai-sdk-provider@0.2.1'
 overrides:
   '@types/react': 19.2.2
   '@types/react-dom': 19.2.2
