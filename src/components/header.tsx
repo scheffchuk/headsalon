@@ -15,6 +15,7 @@ export default function Header() {
               alt="Logo"
               width={48}
               height={48}
+              loading="eager"
             />
           </Link>
           <div className="flex-col hidden md:flex">

@@ -29,7 +29,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className="scroll-smooth" data-scroll-behavior="smooth">
+    <html
+      lang="zh-CN"
+      className="relative scroll-smooth"
+      data-scroll-behavior="smooth"
+    >
       <head>
         <link
           rel="icon"
