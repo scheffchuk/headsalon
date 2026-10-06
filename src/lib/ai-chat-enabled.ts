@@ -1,4 +1,4 @@
-/** AI chat UI is on only when explicitly enabled (Vercel: NEXT_PUBLIC_AI_CHAT_ENABLED=true). */
+/** Forced off. Restore `process.env.NEXT_PUBLIC_AI_CHAT_ENABLED === "true"` to bring chat back. */
 export function isAiChatEnabled(): boolean {
-  return process.env.NEXT_PUBLIC_AI_CHAT_ENABLED === "true";
+  return false;
 }

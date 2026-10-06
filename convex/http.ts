@@ -15,6 +15,11 @@ import { internal } from "./_generated/api";
 const http = httpRouter();
 const SESSION_HEADER = "X-HeadSalon-Session";
 
+/** Forced off. Restore `true` in step with `isAiChatEnabled` to bring chat back. */
+function isDiscussChatEnabled(): boolean {
+  return false;
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   Vary: "origin",
@@ -66,6 +71,13 @@ http.route({
   path: "/api/chat",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
+    if (!isDiscussChatEnabled()) {
+      return Response.json(
+        { kind: "Disabled" },
+        { status: 503, headers: corsHeaders },
+      );
+    }
+
     const sessionId = req.headers.get(SESSION_HEADER) ?? "anonymous";
     const rateLimit = await ctx.runMutation(internal.rateLimits.take, {
       operation: "chat",
