@@ -3,7 +3,6 @@
 import { register as registerRateLimiter } from "@convex-dev/rate-limiter/test";
 import { convexTest } from "convex-test";
 import { describe, expect, test } from "vitest";
-import { internal } from "./_generated/api";
 import schema from "./schema";
 
 const modules = import.meta.glob(
@@ -25,16 +24,9 @@ function setup() {
   return t;
 }
 
-describe("discuss chat rate limiting", () => {
-  test("returns a structured 429 before model streaming starts", async () => {
+describe("discuss chat", () => {
+  test("returns 503 while chat is disabled", async () => {
     const t = setup();
-
-    for (let request = 0; request < 3; request += 1) {
-      await t.mutation(internal.rateLimits.take, {
-        operation: "chat",
-        sessionId: "browser-a",
-      });
-    }
 
     const response = await t.fetch("/api/chat", {
       method: "POST",
@@ -45,10 +37,7 @@ describe("discuss chat rate limiting", () => {
       body: JSON.stringify({ messages: [] }),
     });
 
-    expect(response.status).toBe(429);
-    await expect(response.json()).resolves.toMatchObject({
-      kind: "RateLimited",
-      retryAfter: expect.any(Number),
-    });
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({ kind: "Disabled" });
   });
 });
