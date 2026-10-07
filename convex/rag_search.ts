@@ -87,17 +87,25 @@ export const searchArticlesRAGForChat = internalAction({
     limit: v.optional(v.number()),
     tagFilter: v.optional(v.string()),
     similarityThreshold: v.optional(v.number()),
+    neighbors: v.optional(v.boolean()),
   },
   returns: v.array(SearchResultValidator),
   handler: async (
     ctx: ActionCtx,
-    { query, limit = 20, tagFilter, similarityThreshold = 0.3 },
+    {
+      query,
+      limit = 4,
+      tagFilter,
+      similarityThreshold = 0.3,
+      neighbors = false,
+    },
   ) =>
     searchArticles(ctx, {
       query,
       limit,
       tagFilter,
       similarityThreshold,
+      neighbors,
     }),
 });
 
@@ -108,11 +116,13 @@ async function searchArticles(
     limit,
     tagFilter,
     similarityThreshold,
+    neighbors = true,
   }: {
     query: string;
     limit: number;
     tagFilter?: string;
     similarityThreshold: number;
+    neighbors?: boolean;
   },
 ): Promise<SearchResult[]> {
   if (!query.trim()) return [];
@@ -123,7 +133,9 @@ async function searchArticles(
       query: preprocessChineseQuery(query),
       limit: Math.min(limit * 2, 100),
       vectorScoreThreshold: similarityThreshold,
-      chunkContext: { before: 1, after: 1 },
+      chunkContext: neighbors
+        ? { before: 1, after: 1 }
+        : { before: 0, after: 0 },
       ...(tagFilter && {
         filterValues: [{ name: "tag", value: tagFilter }],
       }),

@@ -8,6 +8,7 @@ import {
   streamText,
   toUIMessageStream,
   tool,
+  type UIMessage,
 } from "ai";
 import { z } from "zod";
 import { internal } from "./_generated/api";
@@ -24,6 +25,21 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   Vary: "origin",
 };
+
+export function messagesForModel(messages: UIMessage[]): UIMessage[] {
+  const recent = messages.slice(-10);
+  const lastIndex = recent.length - 1;
+  return recent.flatMap((message, index) => {
+    if (message.role !== "assistant" || index === lastIndex) {
+      return [message];
+    }
+    const parts = message.parts.filter(
+      (part) =>
+        part.type !== "dynamic-tool" && !part.type.startsWith("tool-"),
+    );
+    return parts.length === 0 ? [] : [{ ...message, parts }];
+  });
+}
 
 function rateLimitedResponse(retryAfter: number): Response {
   return Response.json(
@@ -59,8 +75,8 @@ Communication rules (MANDATORY):
 - No mirror-back paraphrasing. Never "So you're asking about X." Just answer.
 
 Tool usage:
-- ALWAYS use findRelatedArticle for specific views/topics
-- Synthesize retrieved content into coherent response; don't just quote
+- Call findRelatedArticle once for a specific view or topic, then answer. Do not search again.
+- Synthesize retrieved content into a coherent response; don't just quote
 - If articles lack relevant info: "Sorry, I can't find that information in the blog articles."
 
 Link format: [Article Title](/articles/<id>)
@@ -87,20 +103,19 @@ http.route({
       return rateLimitedResponse(rateLimit.retryAfter ?? 1_000);
     }
 
-    const { messages } =
-      await req.json();
-
-    const lastMessages = messages.slice(-10);
+    const { messages } = (await req.json()) as { messages: UIMessage[] };
 
     const result = streamText({
       model: convexGateway("x-ai/grok-4.5"),
       system: systemPrompt,
-      messages: await convertToModelMessages(lastMessages),
-      stopWhen: isStepCount(5),
+      messages: await convertToModelMessages(messagesForModel(messages)),
+      stopWhen: isStepCount(2),
+      prepareStep: ({ stepNumber }) =>
+        stepNumber === 0 ? {} : { toolChoice: "none" },
       tools: {
         findRelatedArticle: tool({
           description:
-            "Find related articles from the blog's RAG system based on the user's query",
+            "Find related articles from the blog's RAG system based on the user's query. Call once.",
           inputSchema: z.object({
             query: z.string().describe("The user's query"),
           }),
@@ -111,17 +126,17 @@ http.route({
               internal.rag_search.searchArticlesRAGForChat,
               {
                 query,
-              }
+                limit: 4,
+                neighbors: false,
+              },
             );
 
-            return searchResults.map((article) => ({
-              id: article._id,
-              title: article.title,
-              slug: article.slug,
-              date: article.date,
-              tags: article.tags,
-              relevantChunks: article.relevantChunks?.slice(0, 2) || [],
-            }));
+            return searchResults.map((article) => {
+              const passage = article.relevantChunks?.[0]?.content;
+              return passage
+                ? { id: article._id, title: article.title, passage }
+                : { id: article._id, title: article.title };
+            });
           },
         }),
       },
