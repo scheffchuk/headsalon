@@ -94,7 +94,7 @@ export const searchArticlesRAGForChat = internalAction({
     ctx: ActionCtx,
     {
       query,
-      limit = 4,
+      limit = 20,
       tagFilter,
       similarityThreshold = 0.3,
       neighbors = false,

@@ -106,7 +106,8 @@ http.route({
     const { messages } = (await req.json()) as { messages: UIMessage[] };
 
     const result = streamText({
-      model: convexGateway("x-ai/grok-4.5"),
+      model: convexGateway("qwen/qwen3.8-flash"),
+      reasoning: "low",
       system: systemPrompt,
       messages: await convertToModelMessages(messagesForModel(messages)),
       stopWhen: isStepCount(2),
@@ -126,7 +127,6 @@ http.route({
               internal.rag_search.searchArticlesRAGForChat,
               {
                 query,
-                limit: 4,
                 neighbors: false,
               },
             );
