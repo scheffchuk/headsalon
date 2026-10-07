@@ -19,7 +19,7 @@ The app depends on these pieces:
 - `/articles/[id]` — One article by Convex id. `lookupArticle` (`src/lib/article-lookup.ts`) calls `articles.getArticleByParam` and returns `{ kind: "article" | "redirect" }` or null. The route only renders or 301s.
 - `/tag/[tag]` — Tag index: articles that share one tag, via `articles.getArticlesByTag`.
 - `/search` — RAG search. The RSC page calls `fetchAction(rag_search.searchArticlesRAG)` from `q`; the search bar is the client island.
-- `/discuss` — Discuss chat, temporarily off. `/discuss` renders `ChatMaintenance`, and `POST /api/chat` returns 503. Search is unchanged.
+- `/discuss` — Discuss chat. The page renders the assistant when `NEXT_PUBLIC_AI_CHAT_ENABLED` is `true`, and `ChatMaintenance` otherwise. `POST /api/chat` streams the reply. Search is unchanged.
 
 The `(site)` route group adds the `Header` and page width. The `(chat)` group has its own layout without the header.
 
@@ -66,7 +66,7 @@ npx convex dev
 3. Set the Next.js environment variables in `.env.local`. The file is gitignored.
 
 - `NEXT_PUBLIC_CONVEX_URL` — Deployment URL, `https://<name>.convex.cloud`. `npx convex dev` writes this value for you. The chat client derives the HTTP base by replacing `.cloud` with `.site` (`src/app/(chat)/discuss/discuss-chat-client.tsx`). Search results use the same URL via `fetchAction` on the server.
-- `NEXT_PUBLIC_AI_CHAT_ENABLED` — Ignored while chat is forced off in `src/lib/ai-chat-enabled.ts` and `convex/http.ts`. Restore both checks to `=== "true"`, then set this to `true`, to bring `/discuss` back.
+- `NEXT_PUBLIC_AI_CHAT_ENABLED` — Set to `true` to show the discuss assistant. `POST /api/chat` stays available either way.
 
 4. Chat and embeddings authenticate through the Convex AI Gateway. The deployment mints a short-lived token with `getServiceToken("ai-gateway")`; do not set `OPENAI_API_KEY` or `AI_GATEWAY_API_KEY`. The team needs a paid plan with gateway access, and a local backend must be linked to that project (`npx convex deployment select`). Chat uses `qwen/qwen3.8-flash` in `convex/http.ts`. Search embeddings call `openai/text-embedding-3-large`, and the RAG namespace keeps the id `text-embedding-3-large` at 3072 dimensions so the existing index still matches. Node actions run on Node 22 (`convex.json`).
 
