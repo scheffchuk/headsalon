@@ -50,4 +50,4 @@ Flat reference. Every line must change behaviour vs default.
 
 ## UI checks
 
-Use agent-browser for UI checks (npm i -g agent-browser && agent-browser install). Before first use, run `agent-browser skills get core` and follow it. Before declaring a UI change done, open the dev server, snapshot, click through the changed flow, and check console errors.
+Use agent-browser for UI checks (pnpm add -g agent-browser && agent-browser install). Before first use, run `agent-browser skills get core` and follow it. Before declaring a UI change done, open the dev server, snapshot, click through the changed flow, and check console errors.
